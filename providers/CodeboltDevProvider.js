@@ -46,7 +46,7 @@ const GlobalStateKey = {
 	anthropicBaseUrl: "anthropicBaseUrl"
 };
 
-class ClaudeDevProvider {
+class CodeboltDevProvider {
 	sideBarId = "claude-dev.SidebarProvider" // used in package.json as the view's id. This value cannot be changed due to how vscode caches views based on their id, and updating the id would break existing instances of the extension.
 	tabPanelId = "claude-dev.TabPanelProvider"
 	activeInstances = new Set()
@@ -56,7 +56,7 @@ class ClaudeDevProvider {
 	latestAnnouncementId = "sep-14-2024" // update to some unique identifier when we add a new announcement
 
 	constructor( context, outputChannel) {
-		// this.outputChannel.appendLine("ClaudeDevProvider instantiated")
+		// this.outputChannel.appendLine("CodeboltDevProvider instantiated")
 		this.activeInstances.add(this)
 		// this.revertKodu()
 	}
@@ -88,7 +88,7 @@ class ClaudeDevProvider {
 	- https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/src/extension.ts
 	*/
 	async dispose() {
-		this.outputChannel.appendLine("Disposing ClaudeDevProvider...")
+		this.outputChannel.appendLine("Disposing CodeboltDevProvider...")
 		await this.clearTask()
 		this.outputChannel.appendLine("Cleared task")
 		if (this.view && "dispose" in this.view) {
@@ -102,7 +102,7 @@ class ClaudeDevProvider {
 			}
 		}
 		this.outputChannel.appendLine("Disposed all disposables")
-		ClaudeDevProvider.activeInstances.delete(this)
+		CodeboltDevProvider.activeInstances.delete(this)
 	}
 
    static getVisibleInstance() {
@@ -583,10 +583,10 @@ class ClaudeDevProvider {
 	/*
 	Now that we use retainContextWhenHidden, we don't have to store a cache of claude messages in the user's state, but we could to reduce memory footprint in long conversations.
 
-	- We have to be careful of what state is shared between ClaudeDevProvider instances since there could be multiple instances of the extension running at once. For example when we cached claude messages using the same key, two instances of the extension could end up using the same key and overwriting each other's messages.
+	- We have to be careful of what state is shared between CodeboltDevProvider instances since there could be multiple instances of the extension running at once. For example when we cached claude messages using the same key, two instances of the extension could end up using the same key and overwriting each other's messages.
 	- Some state does need to be shared between the instances, i.e. the API key--however there doesn't seem to be a good way to notfy the other instances that the API key has changed.
 
-	We need to use a unique identifier for each ClaudeDevProvider instance's message cache since we could be running several instances of the extension outside of just the sidebar i.e. in editor panels.
+	We need to use a unique identifier for each CodeboltDevProvider instance's message cache since we could be running several instances of the extension outside of just the sidebar i.e. in editor panels.
 
 	For now since we don't need to store task history, we'll just use an identifier unique to this provider instance (since there can be several provider instances open at once).
 	However in the future when we implement task history, we'll need to use a unique identifier for each task. As well as manage a data structure that keeps track of task history with their associated identifiers and the task message itself, to present in a 'Task History' view.
@@ -836,5 +836,5 @@ class ClaudeDevProvider {
 	}
 }
 module.exports= {
-	ClaudeDevProvider
+	CodeboltDevProvider
 }
