@@ -1,0 +1,30 @@
+{
+  "name": "codebolt-dev",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "watch:esbuild": "node esbuild.js --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.3",
+    "@codebolt/codeboltjs": "^1.1.63",
+    "axios": "^1.7.7",
+    "default-shell": "^2.2.0",
+    "delay": "^6.0.0",
+    "diff": "^7.0.0",
+    "esbuild": "^0.23.1",
+    "globby": "^14.0.2",
+    "openai": "^4.62.0",
+    "os-name": "^6.0.0",
+    "p-wait-for": "^5.0.2",
+    "serialize-error": "^11.0.3",
+    "tree-sitter-wasms": "^0.1.12",
+    "web-tree-sitter": "^0.23.0"
+  }
+}
