@@ -266,7 +266,7 @@ class CodeboltDev {
 			this.resumeTaskFromHistory();
 		} else if (task || images) {
 			this.taskId = Date.now().toString();
-			console.log(task)
+			// console.log(task)
 			this.startTask(task, images);
 		} else {
 			console.log("Either historyItem or task/images must be provided")
@@ -391,7 +391,7 @@ class CodeboltDev {
 		type,
 		question
 	) {
-		console.log(type, question)
+		// console.log(type, question)
 		// If this ClaudeDev instance was aborted by the provider, then the only thing keeping us alive is a promise still running in the background, in which case we don't want to send its result to the webview as it is attached to a new instance of ClaudeDev now. So we can safely ignore the result of any active promises, and this class will be deallocated. (Although we set claudeDev = undefined in provider, that simply removes the reference to this instance, but the instance is still alive until this promise resolves or rejects.)
 		if (this.abort) {
 			throw new Error("ClaudeDev instance aborted")
@@ -423,9 +423,9 @@ class CodeboltDev {
 		this.lastMessageTs = sayTs
 		await this.addToClaudeMessages({ ts: sayTs, type: "say", say: type, text: text, images })
 		// await this.providerRef.deref()?.postStateToWebview()
-		if (type == "text" || type == "error")
+		if (type == "text" || type == "error" || type=="tool")
 			if(text!="")
-			send_message_to_ui(text);
+			send_message_to_ui(text,type);
 	}
 
 	async startTask(task, images) {
@@ -1048,7 +1048,7 @@ class CodeboltDev {
 			// }
 			return [false, await this.formatToolResult(`The content was successfully saved to ${relPath}.`)]
 		} catch (error) {
-			throw error
+			
 			const { serializeError } = await import("serialize-error");
 			const errorString = `Error writing file: ${JSON.stringify(serializeError(error))}`
 			await this.say(
@@ -1161,7 +1161,7 @@ class CodeboltDev {
 
 			return [false, content]
 		} catch (error) {
-			throw error
+			
 			const { serializeError } = await import("serialize-error");
 			
 			const errorString = `Error reading file: ${JSON.stringify(serializeError(error))}`
@@ -1208,7 +1208,7 @@ class CodeboltDev {
 
 			return [false, await this.formatToolResult(result)]
 		} catch (error) {
-			throw error
+			
 			const { serializeError } = await import("serialize-error");
 
 			const errorString = `Error listing files and directories: ${JSON.stringify(serializeError(error))}`
@@ -1313,7 +1313,7 @@ class CodeboltDev {
 
 			return [false, await this.formatToolResult(result)]
 		} catch (error) {
-			throw error
+			
 			const { serializeError } = await import("serialize-error");
 
 			const errorString = `Error parsing source code definitions: ${JSON.stringify(serializeError(error))}`
@@ -1366,7 +1366,7 @@ class CodeboltDev {
 
 			return [false, await this.formatToolResult(results)]
 		} catch (error) {
-			throw error
+			
 			const { serializeError } = await import("serialize-error");
 
 			const errorString = `Error searching files: ${JSON.stringify(serializeError(error))}`
@@ -1490,7 +1490,7 @@ class CodeboltDev {
 				]
 			}
 		} catch (error) {
-			throw error
+			
 			const { serializeError } = await import("serialize-error");
 
 			let errorMessage = error.message || JSON.stringify(serializeError(error), null, 2)

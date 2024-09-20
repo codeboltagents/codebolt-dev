@@ -12,11 +12,6 @@ const axios = require("axios");
 const { getTheme } = require("../utils/getTheme");
 const { openFile, openImage } = require("../utils/open-file");
 
-/*
-https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
-
-https://github.com/KumarVariable/vscode-extension-sidebar-html/blob/master/src/customSidebarViewProvider.ts
-*/
 
 const SecretKey = {
 	apiKey: "apiKey",

@@ -29,7 +29,7 @@ class OpenAiHandler {
             { role: "system", content: systemPrompt },
             ...convertToOpenAiMessages(messages),
         ];
-        console.log(openAiMessages)
+        // console.log(openAiMessages)
         const openAiTools = tools.map((tool) => ({
             type: "function",
             function: {
