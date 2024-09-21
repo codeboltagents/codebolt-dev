@@ -1,6 +1,7 @@
 const OpenAI = require("openai").default;
 const { AzureOpenAI } = require("openai");
 const { convertToAnthropicMessage, convertToOpenAiMessages } = require("../utils/openai-format");
+const { send_message_to_llm } = require("../utils/codebolt-helper");
 
 class OpenAiHandler {
 	options;
@@ -23,7 +24,6 @@ class OpenAiHandler {
             });
         }
     }
-
     async createMessage(systemPrompt, messages, tools) {
         const openAiMessages = [
             { role: "system", content: systemPrompt },
@@ -39,12 +39,14 @@ class OpenAiHandler {
             },
         }));
         const createParams = {
-            model: this.options.openAiModelId ?? "",
+            full:true,
+            // model: this.options.openAiModelId ?? "",
             messages: openAiMessages,
             tools: openAiTools,
             tool_choice: "auto",
         };
-        const completion = await this.client.chat.completions.create(createParams);
+        // console.log(createParams.tools)
+        const completion = await send_message_to_llm(createParams) //await this.client.chat.completions.create(createParams);
         // console.log(JSON.stringify(completion))
         const errorMessage = completion.error?.message;
         if (errorMessage) {

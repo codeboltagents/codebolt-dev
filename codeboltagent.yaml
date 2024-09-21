@@ -1,0 +1,72 @@
+title: CodeBolt Dev
+unique_id: codebolt_dev
+initial_message: Codebolt Dev, is a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices
+description:  Codebolt Dev, is  a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
+tags:
+  - web
+  - code-generation
+longDescription: |
+  A basic agent designed for the Codebolt platform, offering a range of
+  functionalities to enhance interaction with the platform.
+avatarSrc: https://placehold.co/200x200
+avatarFallback: CE
+metadata:
+  agent_routing:
+    worksonblankcode: true
+    worksonexistingcode: false
+    supportedlanguages:
+      - web
+    supportedframeworks:
+      - html
+  defaultagentllm:
+    strict: true
+    modelorder:
+      - ollama2
+  sdlc_steps_managed:
+    - name: deployment
+      example_instructions:
+        - create website
+  llm_role:
+    - name: documentationllm
+      description: >-
+        LLM to be used for advanced Documentation. Please select a model that
+        excels in documentation tasks.
+      strict: true
+      modelorder:
+        - gpt-4-turbo
+        - gpt-3.5-turbo
+        - mistral7b.perplexity
+        - mistral7b.any
+        - llama2-70b
+        - llama2-15b
+        - group.documentationmodels
+    - name: testingllm
+      description: >-
+        LLM to be used for advanced Testing. Please select a model that excels
+        in testing tasks.
+      strict: true
+      modelorder:
+        - gpt-4-turbo
+        - gpt-3.5-turbo
+        - mistral7b.perplexity
+        - mistral7b.any
+        - llama2-70b
+        - llama2-15b
+        - group.testingmodels
+    - name: actionllm
+      description: LLM to be used for executing advanced actions.
+      strict: true
+      modelorder:
+        - gpt-4-turbo
+        - gpt-3.5-turbo
+        - mistral7b.perplexity
+        - mistral7b.any
+        - llama2-70b
+        - llama2-15b
+        - group.actionmodels
+actions:
+  - name: Execute
+    description: Executes the given task.
+    detailDescription: more detailed description
+    actionPrompt: Please create website
+author: codebolt

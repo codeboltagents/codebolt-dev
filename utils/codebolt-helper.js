@@ -4,6 +4,7 @@ let projectPath;
  * Sends a message to the user interface.
  * @param {string} message - The message to be sent to the UI.
  */
+const COMMAND_OUTPUT_STRING = "Output:"
 async function send_message_to_ui(message, type) {
     await codebolt.waitForConnection();
     let paylod = {};
@@ -13,41 +14,47 @@ async function send_message_to_ui(message, type) {
             const tool = JSON.parse(message || "{}")
             switch (tool.tool) {
                 case "readFile":
-                    agentMessage = "Claude read this file:";
+                    paylod.type = "file"
+                    agentMessage = "Codebolt read this file:";
                     paylod.content = tool.content
                     paylod.path = tool.path;
                     break;
                 case "listFilesTopLevel":
-                    agentMessage = "Claude viewed the top level files in this directory:";
+                    paylod.type = "file"
+                    agentMessage = "Codebolt viewed the top level files in this directory:";
                     paylod.content = tool.content
                     paylod.path = tool.path
                     break;
                 case "listFilesRecursive":
-                    agentMessage = "Claude recursively viewed all files in this directory:";
+                    paylod.type = "file"
+                    agentMessage = "Codebolt recursively viewed all files in this directory:";
                     paylod.content = tool.content
                     paylod.path = tool.path
                     break;
                 case "listCodeDefinitionNames":
+                    paylod.type = "file"
                     paylod.content = tool.content
                     paylod.path = tool.path
-                    agentMessage = "Claude viewed source code definition names used in this directory:";
+                    agentMessage = "Codebolt viewed source code definition names used in this directory:";
                     break;
                 case "searchFiles":
+                    paylod.type = "file"
                     paylod.content = tool.content
                     paylod.path = tool.path + (tool.filePattern ? `/(${tool.filePattern})` : "")
-                    agentMessage = `Claude searched this directory for <code>{tool.regex}</code>:`;
+                    agentMessage = `Codebolt searched this directory for <code>{tool.regex}</code>:`;
                     break;
                 default:
                     return null
                     break;
             }
-            paylod.type="file"
-            
-            default:
-                agentMessage = message
-                break;
+
+
+
+        default:
+            agentMessage = message
+            break;
     }
-   await send_message(agentMessage,paylod)
+    await send_message(agentMessage, paylod)
 }
 async function ask_question(question, type) {
     let buttons = [{
@@ -72,7 +79,7 @@ async function ask_question(question, type) {
             buttons.splice(1, 1); // Remove the second button from the array
         }
         else
-        buttons[1].value = text
+            buttons[1].value = text
     }
     switch (type) {
         case "api_req_failed":
@@ -95,7 +102,7 @@ async function ask_question(question, type) {
                     agentMessage = "Codebolt wants to edit this file";
                     paylod.content = tool.diff
                     paylod.path = tool.path;
-
+                    paylod.type = "file"
                     setPrimaryButtonText("Save");
                     setSecondaryButtonText("Reject");
                     break;
@@ -105,6 +112,7 @@ async function ask_question(question, type) {
                     setPrimaryButtonText("Save");
                     paylod.content = tool.content
                     paylod.path = tool.path;
+                    paylod.type = "file"
                     setSecondaryButtonText("Reject");
                     break;
 
@@ -114,6 +122,7 @@ async function ask_question(question, type) {
                     paylod.path = tool.path;
                     setPrimaryButtonText("Approve");
                     setSecondaryButtonText("Reject");
+                    paylod.type = "file"
                     break;
                 case "listFilesTopLevel":
                     agentMessage = "Codebolt wants to view the top level files in this directory:";
@@ -121,6 +130,7 @@ async function ask_question(question, type) {
                     paylod.path = tool.path;
                     setPrimaryButtonText("Approve");
                     setSecondaryButtonText("Reject");
+                    paylod.type = "file"
                     break;
 
                 case "listFilesRecursive":
@@ -129,6 +139,7 @@ async function ask_question(question, type) {
                     agentMessage = "Codebolt wants to recursively view all files in this directory:";
                     setPrimaryButtonText("Approve");
                     setSecondaryButtonText("Reject");
+                    paylod.type = "file"
                     break;
                 case "listCodeDefinitionNames":
                     paylod.content = tool.content
@@ -136,6 +147,7 @@ async function ask_question(question, type) {
                     agentMessage = "Codebolt wants to view source code definition names used in this directory:";
                     setPrimaryButtonText("Approve");
                     setSecondaryButtonText("Reject");
+                    paylod.type = "file"
                     break;
                 case "searchFiles":
                     paylod.content = tool.content
@@ -143,20 +155,50 @@ async function ask_question(question, type) {
                     agentMessage = `Codebolt wants to search this directory for ${tool.regex}:`;
                     setPrimaryButtonText("Approve");
                     setSecondaryButtonText("Reject");
+                    paylod.type = "file"
                     break;
                 default:
                     return null
                     break;
 
             }
-            paylod.type = tool.tool
             question = undefined
             await send_message(agentMessage, paylod)
             break
         case "command":
-            paylod.type="command"
+            paylod.type = "command"
+            const splitMessage = (text) => {
+                const outputIndex = text.indexOf(COMMAND_OUTPUT_STRING)
+                if (outputIndex === -1) {
+                    return { command: text, output: "" }
+                }
+                return {
+                    command: text.slice(0, outputIndex).trim(),
+                    output: text
+                        .slice(outputIndex + COMMAND_OUTPUT_STRING.length)
+                        .trim()
+                        .split("")
+                        .map((char) => {
+                            switch (char) {
+                                case "\t":
+                                    return "→   "
+                                case "\b":
+                                    return "⌫"
+                                case "\f":
+                                    return "⏏"
+                                case "\v":
+                                    return "⇳"
+                                default:
+                                    return char
+                            }
+                        })
+                        .join(""),
+                }
+            }
+            const { command, output } = splitMessage(question || "")
+            paylod.command = command;
             agentMessage = "Codebolt wants to execute this command:";
-            await send_message(agentMessage,paylod)
+            await send_message(agentMessage, paylod)
             question = undefined
             setPrimaryButtonText("Run Command")
             setSecondaryButtonText("Reject")
@@ -183,9 +225,9 @@ async function ask_question(question, type) {
     // console.log(message.userMessage);
     return message.userMessage;
 }
-async function send_message(message,paylod){
-    console.log(JSON.stringify(message,paylod))
-    codebolt.chat.sendMessage(message,paylod)
+async function send_message(message, paylod) {
+    console.log(JSON.stringify(message, paylod))
+    codebolt.chat.sendMessage(message, paylod)
 }
 
 
@@ -200,8 +242,25 @@ async function executeCommand(command) {
  * @param {string} model - The LLM model to use (e.g., GPT-4, Codebolt-3).
  */
 async function send_message_to_llm(prompt) {
-    let { message } = await codebolt.llm.inference(prompt.messages);
-    return message
+    let { completion } = await codebolt.llm.inference(prompt);
+    return completion
+}
+
+async function get_default_llm() {
+    try {
+        await codebolt.waitForConnection();
+    let {state} = await codebolt.cbstate.getApplicationState();
+    console.log(state)
+    if (state.appState && state.appState.defaultApplicationLLM) {
+        return state.appState.defaultApplicationLLM.name.replace(/\s+/g, '').toLowerCase();
+    }
+    else {
+        return null
+    }
+    } catch (error) {
+        return null
+    }
+    
 }
 
 
@@ -226,7 +285,7 @@ module.exports = {
     send_message_to_ui,
     send_message_to_llm,
 
-  
+    get_default_llm,
     ask_question,
     executeCommand,
     currentProjectPath

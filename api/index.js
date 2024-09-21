@@ -7,7 +7,7 @@ const { OpenAiHandler } = require("./openai");
 
 function buildApiHandler(configuration) {
 	const { apiProvider, ...options } = configuration;
-	switch (apiProvider) {
+	switch (apiProvider.toLowerCase()) {
 		case "anthropic":
 			return new AnthropicHandler(options);
 		case "openai":

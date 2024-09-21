@@ -24,7 +24,7 @@ const { send_message_to_ui, ask_question, executeCommand,currentProjectPath } = 
 var cwd;// = '/Users/ravirawat/Desktop/codebolt/timer-application'
 
 const SYSTEM_PROMPT =
-	async () => `You are Claude Dev, a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
+	async () => `You are Codebolt Dev, a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
 
 ====
  
@@ -415,7 +415,7 @@ class CodeboltDev {
 		return result
 	}
 
-	async say(type, text, images) {
+	async say(type, text, images,isUserMessage=false) {
 		if (this.abort) {
 			throw new Error("ClaudeDev instance aborted")
 		}
@@ -423,8 +423,8 @@ class CodeboltDev {
 		this.lastMessageTs = sayTs
 		await this.addToClaudeMessages({ ts: sayTs, type: "say", say: type, text: text, images })
 		// await this.providerRef.deref()?.postStateToWebview()
-		if (type == "text" || type == "error" || type=="tool")
-			if(text!="")
+		if (type == "text" || type == "error" || type=="tool" || type=="command")
+			if(text!="" && !isUserMessage)
 			send_message_to_ui(text,type);
 	}
 
@@ -435,7 +435,7 @@ class CodeboltDev {
 		this.apiConversationHistory = []
 		await this.providerRef.deref()?.postStateToWebview()
         cwd= await currentProjectPath();
-		await this.say("text", task, images)
+		await this.say("text", task, images,true)
 
 		let imageBlocks = this.formatImagesIntoBlocks(images)
 		await this.initiateTaskLoop([

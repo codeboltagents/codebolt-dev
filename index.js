@@ -1,8 +1,14 @@
+const codebolt = require('@codebolt/codeboltjs').default
+
 const { CodeboltDevProvider } = require('./providers/CodeboltDevProvider');
-
-
-async function startTask() {
-    let provider= new CodeboltDevProvider()
-    await provider.initClaudeDevWithTask("create clock app using react",undefined)
-}
-startTask();
+codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+        await codebolt.waitForConnection();
+        let message = req.message;
+        let mentionedFiles = req.message.mentionedFiles || [];
+        console.log(mentionedFiles);
+        let mentionedFolders = req.message.mentionedFolders;
+        // coder.apply_updates()
+        let provider= new CodeboltDevProvider()
+        await provider.initClaudeDevWithTask(message,undefined)
+        response("ok");
+    })

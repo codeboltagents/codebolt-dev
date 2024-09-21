@@ -1,6 +1,6 @@
 const { Anthropic } = require("@anthropic-ai/sdk");
 // const vscode = require("vscode");
-const {CodeboltDev :ClaudeDev  } = require("./../CodeboltDev");
+const { CodeboltDev: ClaudeDev } = require("./../CodeboltDev");
 const { ApiProvider } = require("../shared/api");
 const { ExtensionMessage } = require("../shared/ExtensionMessage");
 const { WebviewMessage } = require("../shared/WebviewMessage");
@@ -11,6 +11,7 @@ const { HistoryItem } = require("../shared/HistoryItem");
 const axios = require("axios");
 const { getTheme } = require("../utils/getTheme");
 const { openFile, openImage } = require("../utils/open-file");
+const { get_default_llm, send_message_to_ui } = require("../utils/codebolt-helper");
 
 
 const SecretKey = {
@@ -50,7 +51,7 @@ class CodeboltDevProvider {
 	claudeDev
 	latestAnnouncementId = "sep-14-2024" // update to some unique identifier when we add a new announcement
 
-	constructor( context, outputChannel) {
+	constructor(context, outputChannel) {
 		// this.outputChannel.appendLine("CodeboltDevProvider instantiated")
 		this.activeInstances.add(this)
 		// this.revertKodu()
@@ -62,15 +63,15 @@ class CodeboltDevProvider {
 			// switch back to previous provider
 			const anthropicKey = await this.getSecret("apiKey")
 			if (anthropicKey) {
-				await this.updateGlobalState("apiProvider", "anthropic" )
+				await this.updateGlobalState("apiProvider", "anthropic")
 			} else {
 				const openRouterApiKey = await this.getSecret("openRouterApiKey")
 				if (openRouterApiKey) {
-					await this.updateGlobalState("apiProvider", "openrouter" )
+					await this.updateGlobalState("apiProvider", "openrouter")
 				} else {
 					const awsAccessKey = await this.getSecret("awsAccessKey")
 					if (awsAccessKey) {
-						await this.updateGlobalState("apiProvider", "bedrock" )
+						await this.updateGlobalState("apiProvider", "bedrock")
 					}
 				}
 			}
@@ -100,7 +101,7 @@ class CodeboltDevProvider {
 		CodeboltDevProvider.activeInstances.delete(this)
 	}
 
-   static getVisibleInstance() {
+	static getVisibleInstance() {
 		return findLast(Array.from(this.activeInstances), (instance) => instance.view?.visible === true)
 	}
 
@@ -187,8 +188,14 @@ class CodeboltDevProvider {
 	async initClaudeDevWithTask(task, images) {
 		await this.clearTask() // ensures that an exising task doesn't exist before starting a new one, although this shouldn't be possible since user must clear task before starting a new one
 		const { apiConfiguration, customInstructions, alwaysAllowReadOnly } = await this.getState()
-	
-		this.claudeDev = new ClaudeDev(this, {apiProvider:'openai',openAiBaseUrl:process.env.OPENAI_BASE_URL,openAiApiKey:process.env.OPENAI_API_KEY,openAiModelId:'gpt-4o'}, customInstructions, alwaysAllowReadOnly, task, images)
+		let provider = await get_default_llm();
+		if (provider == null) {
+			send_message_to_ui("no llm setting found")
+		}
+		else {
+			this.claudeDev = new ClaudeDev(this, { apiProvider: provider }, customInstructions, alwaysAllowReadOnly, task, images)
+
+		}
 	}
 
 	async initClaudeDevWithHistoryItem(historyItem) {
@@ -221,7 +228,7 @@ class CodeboltDevProvider {
 	 * @returns A template string literal containing the HTML that should be
 	 * rendered within the webview panel
 	 */
-	 getHtmlContent(webview) {
+	getHtmlContent(webview) {
 		// Get the local path to main script run in the webview,
 		// then convert it to a uri we can use in the webview.
 
@@ -297,7 +304,7 @@ class CodeboltDevProvider {
 	 *
 	 * @param webview A reference to the extension webview
 	 */
-	 setWebviewMessageListener(webview) {
+	setWebviewMessageListener(webview) {
 		webview.onDidReceiveMessage(
 			async (message) => {
 				switch (message.type) {
@@ -557,7 +564,7 @@ class CodeboltDevProvider {
 		const { apiConfiguration, lastShownAnnouncementId, customInstructions, alwaysAllowReadOnly, taskHistory } =
 			await this.getState()
 		return {
-			version:'', //this.context.extension?.packageJSON?.version ?? "",
+			version: '', //this.context.extension?.packageJSON?.version ?? "",
 			apiConfiguration,
 			customInstructions,
 			alwaysAllowReadOnly,
@@ -679,27 +686,27 @@ class CodeboltDevProvider {
 			alwaysAllowReadOnly,
 			taskHistory,
 		] = await Promise.all([
-			this.getGlobalState("apiProvider") ,
-			this.getGlobalState("apiModelId") ,
-			this.getSecret("apiKey") ,
-			this.getSecret("openRouterApiKey") ,
-			this.getSecret("awsAccessKey") ,
-			this.getSecret("awsSecretKey") ,
-			this.getSecret("awsSessionToken") ,
-			this.getGlobalState("awsRegion") ,
-			this.getGlobalState("vertexProjectId") ,
-			this.getGlobalState("vertexRegion") ,
-			this.getGlobalState("openAiBaseUrl") ,
-			this.getSecret("openAiApiKey") ,
-			this.getGlobalState("openAiModelId") ,
-			this.getGlobalState("ollamaModelId") ,
-			this.getGlobalState("ollamaBaseUrl") ,
-			this.getGlobalState("anthropicBaseUrl") ,
+			this.getGlobalState("apiProvider"),
+			this.getGlobalState("apiModelId"),
+			this.getSecret("apiKey"),
+			this.getSecret("openRouterApiKey"),
+			this.getSecret("awsAccessKey"),
+			this.getSecret("awsSecretKey"),
+			this.getSecret("awsSessionToken"),
+			this.getGlobalState("awsRegion"),
+			this.getGlobalState("vertexProjectId"),
+			this.getGlobalState("vertexRegion"),
+			this.getGlobalState("openAiBaseUrl"),
+			this.getSecret("openAiApiKey"),
+			this.getGlobalState("openAiModelId"),
+			this.getGlobalState("ollamaModelId"),
+			this.getGlobalState("ollamaBaseUrl"),
+			this.getGlobalState("anthropicBaseUrl"),
 			this.getSecret("geminiApiKey"),
 			this.getSecret("openAiNativeApiKey"),
 			this.getGlobalState("lastShownAnnouncementId"),
 			this.getGlobalState("customInstructions"),
-			this.getGlobalState("alwaysAllowReadOnly") ,
+			this.getGlobalState("alwaysAllowReadOnly"),
 			this.getGlobalState("taskHistory"),
 		])
 
@@ -759,21 +766,21 @@ class CodeboltDevProvider {
 
 	// global
 
-	 async updateGlobalState(key, value) {
-		await  true //this.context.globalState.update(key, value)
+	async updateGlobalState(key, value) {
+		await true //this.context.globalState.update(key, value)
 	}
 
-	 async getGlobalState(key) {
+	async getGlobalState(key) {
 		return undefined// await this.context.globalState.get(key)
 	}
 
 	// workspace
 
-	 async updateWorkspaceState(key, value) {
+	async updateWorkspaceState(key, value) {
 		await this.context.workspaceState.update(key, value)
 	}
 
-	 async getWorkspaceState(key) {
+	async getWorkspaceState(key) {
 		return await this.context.workspaceState.get(key)
 	}
 
@@ -789,7 +796,7 @@ class CodeboltDevProvider {
 
 	// secrets
 
-	 async storeSecret(key, value) {
+	async storeSecret(key, value) {
 		if (value) {
 			await this.context.secrets.store(key, value)
 		} else {
@@ -797,8 +804,8 @@ class CodeboltDevProvider {
 		}
 	}
 
-	 async getSecret(key) {
-		return  undefined//await this.context.secrets.get(key)
+	async getSecret(key) {
+		return undefined//await this.context.secrets.get(key)
 	}
 
 	// dev
@@ -808,7 +815,7 @@ class CodeboltDevProvider {
 		for (const key of this.context.globalState.keys()) {
 			await this.context.globalState.update(key, undefined)
 		}
-		const secretKeys= [
+		const secretKeys = [
 			"apiKey",
 			"openRouterApiKey",
 			"awsAccessKey",
@@ -830,6 +837,6 @@ class CodeboltDevProvider {
 		await this.postMessageToWebview({ type: "action", action: "chatButtonTapped" })
 	}
 }
-module.exports= {
+module.exports = {
 	CodeboltDevProvider
 }
