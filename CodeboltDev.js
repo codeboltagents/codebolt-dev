@@ -22,7 +22,15 @@ const { regexSearchFiles } = require("./utils/ripgrep");
 const { send_message_to_ui, ask_question, executeCommand,currentProjectPath } = require("./utils/codebolt-helper");
 
 var cwd;// = '/Users/ravirawat/Desktop/codebolt/timer-application'
-
+const ApproveButtons = {
+    RETRY: "Retry",
+    PROCEED_ANYWAYS: "Proceed Anyways",
+    SAVE: "Save",
+    APPROVE: "Approve",
+    RUN_COMMAND: "Run Command",
+    RESUME_TASK: "Resume Task",
+    START_NEW_TASK: "Start New Task"
+};
 const SYSTEM_PROMPT =
 	async () => `You are Codebolt Dev, a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
 
@@ -286,7 +294,7 @@ class CodeboltDev {
 		this.alwaysAllowReadOnly = alwaysAllowReadOnly ?? false
 	}
 
-	async handleWebviewAskResponse(askResponse) {
+	async handleWebviewAskResponse(askResponse,text,images) {
 		this.askResponse = askResponse
 		this.askResponseText = text
 		this.askResponseImages = images
@@ -403,7 +411,22 @@ class CodeboltDev {
 		this.lastMessageTs = askTs
 		await this.addToClaudeMessages({ ts: askTs, type: "ask", ask: type, text: question })
 		// await this.providerRef.deref()?.postStateToWebview()
-		this.askResponse = await ask_question(question,type)
+		let codeboltAskReaponse = await ask_question(question,type);
+		if (codeboltAskReaponse.type === "confirmationResponse") {
+             this.handleWebviewAskResponse(codeboltAskReaponse.message.userMessage,undefined,[])
+		}
+		else {
+			codeboltAskReaponse.type === "feedbackResponse"
+			this.handleWebviewAskResponse("messageResponse",codeboltAskReaponse.message.userMessage,[])
+		}
+		// await pWaitFor(() => this.askResponse !== undefined || this.lastMessageTs !== askTs, { interval: 100 })
+		if (this.lastMessageTs !== askTs) {
+			//throw new Error("Current ask promise was ignored") // could happen if we send multiple asks in a row i.e. with command_output. It's important that when we know an ask could fail, it is handled gracefully
+		}
+		if (!this.askResponse) {
+			// Finish the process or exit the function
+			return;
+		}
 		// await pWaitFor(() => this.askResponse !== undefined || this.lastMessageTs !== askTs, { interval: 100 })
 		if (this.lastMessageTs !== askTs) {
 			//throw new Error("Current ask promise was ignored") // could happen if we send multiple asks in a row i.e. with command_output. It's important that when we know an ask could fail, it is handled gracefully
@@ -923,7 +946,7 @@ class CodeboltDev {
 			// 	await this.closeDiffViews()
 			// }
 
-			if (response !== "yesButtonTapped") {
+			if (!Object.values(ApproveButtons).includes(response)) {
 				if (!fileExists) {
 					if (updatedDocument.isDirty) {
 						await updatedDocument.save()
@@ -1147,7 +1170,7 @@ class CodeboltDev {
 				await this.say("tool", message)
 			} else {
 				const { response, text, images } = await this.ask("tool", message)
-				if (response !== "yesButtonTapped") {
+				if (!Object.values(ApproveButtons).includes(response)) {
 					if (response === "messageResponse") {
 						await this.say("user_feedback", text, images)
 						return [
@@ -1180,7 +1203,7 @@ class CodeboltDev {
 		}
 		this.consecutiveMistakeCount = 0
 		try {
-			const recursive = recursiveRaw?.toLowerCase() === "true"
+			const recursive = typeof recursiveRaw === "string" && recursiveRaw.toLowerCase() === "true" // Ensure recursiveRaw is a string
 			const absolutePath = path.resolve(cwd, relDirPath)
 			const files = await listFiles(absolutePath, recursive)
 			const result = this.formatFilesList(absolutePath, files)
@@ -1194,7 +1217,7 @@ class CodeboltDev {
 				await this.say("tool", message)
 			} else {
 				const { response, text, images } = await this.ask("tool", message)
-				if (response !== "yesButtonTapped") {
+				if (!Object.values(ApproveButtons).includes(response)) {
 					if (response === "messageResponse") {
 						await this.say("user_feedback", text, images)
 						return [
@@ -1208,14 +1231,12 @@ class CodeboltDev {
 
 			return [false, await this.formatToolResult(result)]
 		} catch (error) {
-			
 			const { serializeError } = await import("serialize-error");
 
 			const errorString = `Error listing files and directories: ${JSON.stringify(serializeError(error))}`
 			await this.say(
 				"error",
-				`Error listing files and directories:\n${error.message ?? JSON.stringify(serializeError(error), null, 2)
-				}`
+				`Error listing files and directories:\n${error.message ?? JSON.stringify(serializeError(error), null, 2)}`
 			)
 			return [false, await this.formatToolError(errorString)]
 		}
@@ -1299,7 +1320,7 @@ class CodeboltDev {
 				await this.say("tool", message)
 			} else {
 				const { response, text, images } = await this.ask("tool", message)
-				if (response !== "yesButtonTapped") {
+				if (!Object.values(ApproveButtons).includes(response)) {
 					if (response === "messageResponse") {
 						await this.say("user_feedback", text, images)
 						return [
@@ -1352,7 +1373,7 @@ class CodeboltDev {
 				await this.say("tool", message)
 			} else {
 				const { response, text, images } = await this.ask("tool", message)
-				if (response !== "yesButtonTapped") {
+				if (!Object.values(ApproveButtons).includes(response)) {
 					if (response === "messageResponse") {
 						await this.say("user_feedback", text, images)
 						return [
@@ -1389,7 +1410,7 @@ class CodeboltDev {
 		}
 		this.consecutiveMistakeCount = 0
 		const { response, text, images } = await this.ask("command", command)
-		if (response !== "yesButtonTapped") {
+		if (!Object.values(ApproveButtons).includes(response)) {
 			if (response === "messageResponse") {
 				await this.say("user_feedback", text, images)
 				return [true, this.formatToolResponseWithImages(await this.formatToolDeniedFeedback(text), images)]
@@ -1529,10 +1550,11 @@ class CodeboltDev {
 			}
 			resultToSend = ""
 		}
-		const { response, text, images } = await this.ask("completion_result", resultToSend) // this prompts webview to show 'new task' button, and enable text input (which would be the 'text' here)
-		if (response === "yesButtonTapped") {
+		
+		// const { response, text, images } = await this.ask("completion_result", resultToSend) // this prompts webview to show 'new task' button, and enable text input (which would be the 'text' here)
+		// if (!Object.values(ApproveButtons).includes(response)) {
 			return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
-		}
+		// }
 		await this.say("user_feedback", text ?? "", images)
 		return [
 			true,
@@ -1601,7 +1623,7 @@ ${this.customInstructions.trim()}
 				"api_req_failed",
 				error.message ?? JSON.stringify(serializeError(error), null, 2)
 			)
-			if (response !== "yesButtonTapped") {
+			if (!Object.values(ApproveButtons).includes(response)) {
 				// this will never happen since if noButtonTapped, we will clear current task, aborting this instance
 				throw new Error("API request failed")
 			}

@@ -8,21 +8,7 @@ class OpenAiHandler {
 	client;
     constructor(options) {
         this.options = options || {}; // Ensure options is defined
-        // Azure API shape slightly differs from the core API shape: https://github.com/openai/openai-node?tab=readme-ov-file#microsoft-azure-openai
-        if (this.options.openAiBaseUrl && this.options.openAiBaseUrl.toLowerCase().includes("azure.com")) {
-            this.client = new AzureOpenAI({
-                baseURL: this.options.openAiBaseUrl,
-                apiKey: this.options.openAiApiKey,
-                // https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation
-                // https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#api-specs
-                apiVersion: "2024-08-01-preview",
-            });
-        } else {
-            this.client = new OpenAI({
-                baseURL: this.options.openAiBaseUrl,
-                apiKey: this.options.openAiApiKey,
-            });
-        }
+        
     }
     async createMessage(systemPrompt, messages, tools) {
         const openAiMessages = [

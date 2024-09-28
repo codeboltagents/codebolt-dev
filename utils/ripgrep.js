@@ -1,4 +1,5 @@
 // const vscode = require("vscode");
+const { getBinPath, search, exec, execJson } = require("vscode-ripgrep-utils");
 const childProcess = require("child_process");
 const path = require("path");
 const fs = require("fs");
@@ -51,19 +52,19 @@ const binName = isWindows ? "rg.exe" : "rg";
 
 const MAX_RESULTS = 300;
 
-async function getBinPath(vscodeAppRoot) {
-	const checkPath = async (pkgFolder) => {
-		const fullPath = path.join(vscodeAppRoot, pkgFolder, binName);
-		return (await pathExists(fullPath)) ? fullPath : undefined;
-	};
+// async function getBinPath(vscodeAppRoot) {
+// 	const checkPath = async (pkgFolder) => {
+// 		const fullPath = path.join(vscodeAppRoot, pkgFolder, binName);
+// 		return (await pathExists(fullPath)) ? fullPath : undefined;
+// 	};
 
-	return (
-		(await checkPath("node_modules/@vscode/ripgrep/bin/")) ||
-		(await checkPath("node_modules/vscode-ripgrep/bin")) ||
-		(await checkPath("node_modules.asar.unpacked/vscode-ripgrep/bin/")) ||
-		(await checkPath("node_modules.asar.unpacked/@vscode/ripgrep/bin/"))
-	);
-}
+// 	return (
+// 		(await checkPath("node_modules/@vscode/ripgrep/bin/")) ||
+// 		(await checkPath("node_modules/vscode-ripgrep/bin")) ||
+// 		(await checkPath("node_modules.asar.unpacked/vscode-ripgrep/bin/")) ||
+// 		(await checkPath("node_modules.asar.unpacked/@vscode/ripgrep/bin/"))
+// 	);
+// }
 
 async function pathExists(path) {
 	return new Promise((resolve) => {
@@ -114,8 +115,8 @@ async function execRipgrep(bin, args) {
 }
 
 async function regexSearchFiles(cwd, directoryPath, regex, filePattern) {
-	const vscodeAppRoot = vscode.env.appRoot;
-	const rgPath = await getBinPath(vscodeAppRoot);
+	const vscodeAppRoot = process.cwd(); // Use current working directory as a fallback
+	const rgPath = await getBinPath(vscodeAppRoot); 
 
 	if (!rgPath) {
 		throw new Error("Could not find ripgrep binary");
@@ -205,4 +206,8 @@ function formatResults(results, cwd) {
 	}
 
 	return output.trim();
+}
+
+module.exports={
+	regexSearchFiles
 }

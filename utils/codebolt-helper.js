@@ -72,14 +72,17 @@ async function ask_question(question, type) {
     let agentMessage = ""
     function setPrimaryButtonText(text) {
         buttons[0].text = text
-        // buttons[0].value=text
+        buttons[0].value = text
     }
     function setSecondaryButtonText(text) {
         if (text === undefined) {
             buttons.splice(1, 1); // Remove the second button from the array
         }
-        else
+        else {
             buttons[1].value = text
+            buttons[1].text = text
+        }
+
     }
     switch (type) {
         case "api_req_failed":
@@ -221,9 +224,11 @@ async function ask_question(question, type) {
             break
     }
     // console.log("sending message ", question, buttons)
-    const { message } = await codebolt.chat.sendConfirmationRequest(question, buttons);
+    const response = await codebolt.chat.sendConfirmationRequest(question, buttons,true);
     // console.log(message.userMessage);
-    return message.userMessage;
+
+    return response
+
 }
 async function send_message(message, paylod) {
     console.log(JSON.stringify(message, paylod))
@@ -249,18 +254,18 @@ async function send_message_to_llm(prompt) {
 async function get_default_llm() {
     try {
         await codebolt.waitForConnection();
-    let {state} = await codebolt.cbstate.getApplicationState();
-    console.log(state)
-    if (state.appState && state.appState.defaultApplicationLLM) {
-        return state.appState.defaultApplicationLLM.name.replace(/\s+/g, '').toLowerCase();
-    }
-    else {
-        return null
-    }
+        let { state } = await codebolt.cbstate.getApplicationState();
+        console.log(state)
+        if (state.appState && state.appState.defaultApplicationLLM) {
+            return state.appState.defaultApplicationLLM.name.replace(/\s+/g, '').toLowerCase();
+        }
+        else {
+            return null
+        }
     } catch (error) {
         return null
     }
-    
+
 }
 
 
