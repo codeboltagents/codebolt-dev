@@ -9,6 +9,6 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
         let mentionedFolders = req.message.mentionedFolders;
         // coder.apply_updates()
         let provider= new CodeboltDevProvider()
-        await provider.initClaudeDevWithTask(message.userMessage,undefined)
-        response("ok");
+        await provider.initClaudeDevWithTask(message.userMessage,undefined,response)
+        
     })

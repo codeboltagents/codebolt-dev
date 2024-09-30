@@ -87,13 +87,11 @@ You accomplish a given task iteratively, breaking it down into clear steps and w
 
 SYSTEM INFORMATION
 
-Operating System: mac
+Operating System: ${os.type}
 Default Shell: 
 Home Directory: ${os.homedir()}
 Current Working Directory: ${cwd}
 `
-
-
 // vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0) ?? path.join(os.homedir(), "Desktop") // may or may not exist but fs checking existence would immediately ask for permission which would be bad UX, need to come up with a better solution
 
 const tools = [
@@ -254,7 +252,8 @@ class CodeboltDev {
 		alwaysAllowReadOnly,
 		task,
 		images,
-		historyItem
+		historyItem,
+		response
 	) {
 		this.taskId = '';
 		this.didEditFile = false;
@@ -275,7 +274,7 @@ class CodeboltDev {
 		} else if (task || images) {
 			this.taskId = Date.now().toString();
 			// console.log(task)
-			this.startTask(task, images);
+			this.startTask(task, images,response);
 		} else {
 			console.log("Either historyItem or task/images must be provided")
 			throw new Error("Either historyItem or task/images must be provided");
@@ -451,7 +450,7 @@ class CodeboltDev {
 			send_message_to_ui(text,type);
 	}
 
-	async startTask(task, images) {
+	async startTask(task, images,response) {
 		// conversationHistory (for API) and claudeMessages (for webview) need to be in sync
 		// if the extension process were killed, then on restart the claudeMessages might not be empty, so we need to set it to [] when we create a new ClaudeDev client (otherwise webview would show stale messages from previous session)
 		this.claudeMessages = []
@@ -468,6 +467,7 @@ class CodeboltDev {
 			},
 			...imageBlocks,
 		])
+		response("ok")
 	}
 
 	async resumeTaskFromHistory() {

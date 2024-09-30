@@ -185,7 +185,7 @@ class CodeboltDevProvider {
 		this.outputChannel.appendLine("Webview view resolved")
 	}
 
-	async initClaudeDevWithTask(task, images) {
+	async initClaudeDevWithTask(task, images,response) {
 		await this.clearTask() // ensures that an exising task doesn't exist before starting a new one, although this shouldn't be possible since user must clear task before starting a new one
 		const { apiConfiguration, customInstructions, alwaysAllowReadOnly } = await this.getState()
 		let provider = await get_default_llm();
@@ -193,7 +193,7 @@ class CodeboltDevProvider {
 			send_message_to_ui("no llm setting found")
 		}
 		else {
-			this.claudeDev = new ClaudeDev(this, { apiProvider: provider }, customInstructions, alwaysAllowReadOnly, task, images)
+			this.claudeDev = new ClaudeDev(this, { apiProvider: provider }, customInstructions, alwaysAllowReadOnly, task, images,undefined,response)
 
 		}
 	}
