@@ -19,7 +19,7 @@ const { findLast, findLastIndex, formatContentBlockToMarkdown } = require("./uti
 const { truncateHalfConversation } = require("./utils/context-management");
 const { extractTextFromFile } = require("./utils/extract-text");
 const { regexSearchFiles } = require("./utils/ripgrep");
-const { send_message_to_ui, ask_question, executeCommand,currentProjectPath } = require("./utils/codebolt-helper");
+const { send_message_to_ui, ask_question, executeCommand,currentProjectPath, sendNotification } = require("./utils/codebolt-helper");
 
 var cwd;// = '/Users/ravirawat/Desktop/codebolt/timer-application'
 const ApproveButtons = {
@@ -1420,7 +1420,11 @@ class CodeboltDev {
 
 		try {
 		
-			let {result} = await executeCommand(command)
+
+			sendNotification('terminal',"Executing Command: View Logs")
+			let {result,type} = await executeCommand(command);
+			console.log("command output is" );
+			
 			let completed = true
 
 			let userFeedback;
@@ -1473,8 +1477,8 @@ class CodeboltDev {
 			// for their associated messages to be sent to the webview, maintaining
 			// the correct order of messages (although the webview is smart about
 			// grouping command_output messages despite any gaps anyways)
-			const delay = (await import("delay")).default;
-			await delay(50)
+			// const delay = (await import("delay")).default;
+			// await delay(50)
 
 			result = result.trim()
 
@@ -1493,7 +1497,8 @@ class CodeboltDev {
 
 			// for attemptCompletion, we don't want to return the command output
 			if (returnEmptyStringOnSuccess) {
-				return [false, ""]
+		
+				return [false, type === "commandError" ? result : ""]
 			}
 			if (completed) {
 				return [
@@ -1663,6 +1668,8 @@ ${this.customInstructions.trim()}
 
 		// getting verbose details is an expensive operation, it uses globby to top-down build file structure of project which for large projects can take a few seconds
 		// for the best UX we show a placeholder api_req_started message with a loading spinner as this happens
+		sendNotification('debug',"Sending Request To AI ...: View Logs")
+
 		await this.say(
 			"api_req_started",
 			JSON.stringify({

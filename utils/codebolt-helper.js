@@ -235,6 +235,11 @@ async function send_message(message, paylod) {
     codebolt.chat.sendMessage(message, paylod)
 }
 
+async function sendNotification(type,message){
+    codebolt.sendNotification(type,message)
+
+}
+
 
 async function executeCommand(command) {
     const response = await codebolt.terminal.executeCommand(command);
@@ -293,5 +298,6 @@ module.exports = {
     get_default_llm,
     ask_question,
     executeCommand,
-    currentProjectPath
+    currentProjectPath,
+    sendNotification
 }
