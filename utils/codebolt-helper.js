@@ -226,7 +226,6 @@ async function ask_question(question, type) {
     // console.log("sending message ", question, buttons)
     const response = await codebolt.chat.sendConfirmationRequest(question, buttons,true);
     // console.log(message.userMessage);
-
     return response
 
 }
@@ -236,7 +235,7 @@ async function send_message(message, paylod) {
 }
 
 async function sendNotification(type,message){
-    codebolt.sendNotification(type,message)
+    codebolt.chat.sendNotificationEvent(message,type)
 
 }
 
@@ -291,10 +290,34 @@ async function currentProjectPath() {
 
     }
 }
+async function getInstructionsForAgent(){
+    const fs = require('fs').promises;
+    const path = require('path');
+    if (projectPath) {
+        const filePath = path.join(projectPath, 'codebltInstruction.md');
+        try {
+            const fileContent = await fs.readFile(filePath, 'utf-8');
+            return fileContent;
+        } catch (error) {
+            console.error('Error reading codebltInstruction.md:', error);
+            return '';
+        }
+    } else {
+        await currentProjectPath();
+        const filePath = path.join(currentProjectPath, 'codebltInstruction.md');
+        try {
+            const fileContent = await fs.readFile(filePath, 'utf-8');
+            return fileContent;
+        } catch (error) {
+            console.error('Error reading codebltInstruction.md:', error);
+            return '';
+        }
+    }
+}
 module.exports = {
     send_message_to_ui,
     send_message_to_llm,
-
+    getInstructionsForAgent,
     get_default_llm,
     ask_question,
     executeCommand,

@@ -19,9 +19,10 @@ const { findLast, findLastIndex, formatContentBlockToMarkdown } = require("./uti
 const { truncateHalfConversation } = require("./utils/context-management");
 const { extractTextFromFile } = require("./utils/extract-text");
 const { regexSearchFiles } = require("./utils/ripgrep");
-const { send_message_to_ui, ask_question, executeCommand,currentProjectPath, sendNotification } = require("./utils/codebolt-helper");
+const { send_message_to_ui, ask_question, executeCommand,currentProjectPath, sendNotification,getInstructionsForAgent } = require("./utils/codebolt-helper");
 
 var cwd;// = '/Users/ravirawat/Desktop/codebolt/timer-application'
+var codebolt_instructions;
 const ApproveButtons = {
     RETRY: "Retry",
     PROCEED_ANYWAYS: "Proceed Anyways",
@@ -33,7 +34,7 @@ const ApproveButtons = {
 };
 const SYSTEM_PROMPT =
 	async () => `You are Codebolt Dev, a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
-
+${codebolt_instructions}
 ====
  
 CAPABILITIES
@@ -457,6 +458,7 @@ class CodeboltDev {
 		this.apiConversationHistory = []
 		await this.providerRef.deref()?.postStateToWebview()
         cwd= await currentProjectPath();
+		codebolt_instructions= await getInstructionsForAgent();
 		await this.say("text", task, images,true)
 
 		let imageBlocks = this.formatImagesIntoBlocks(images)
