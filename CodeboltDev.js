@@ -30,7 +30,9 @@ const ApproveButtons = {
     APPROVE: "Approve",
     RUN_COMMAND: "Run Command",
     RESUME_TASK: "Resume Task",
-    START_NEW_TASK: "Start New Task"
+    START_NEW_TASK: "Start New Task",
+	YES:"Yes"
+	
 };
 const SYSTEM_PROMPT =
 	async () => `You are Codebolt Dev, a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
@@ -1423,7 +1425,7 @@ class CodeboltDev {
 		try {
 		
 
-			sendNotification('terminal',"Executing Command: View Logs")
+			sendNotification('console',"Executing Command: View Logs")
 			let {result,type} = await executeCommand(command);
 			console.log("command output is" );
 			
@@ -1652,7 +1654,7 @@ ${this.customInstructions.trim()}
 				"mistake_limit_reached",
 				this.api.getModel().id.includes("claude")
 					? `This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
-					: "Claude Dev uses complex prompts and iterative task execution that may be challenging for less capable models. For best results, it's recommended to use Claude 3.5 Sonnet for its advanced agentic coding capabilities."
+					: "Codebolt Dev uses complex prompts and iterative task execution that may be challenging for less capable models. For best results, it's recommended to use Claude 3.5 Sonnet for its advanced agentic coding capabilities."
 			)
 			if (response === "messageResponse") {
 				userContent.push(

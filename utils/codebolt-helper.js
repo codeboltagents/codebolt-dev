@@ -1,5 +1,7 @@
 const codebolt = require('@codebolt/codeboltjs').default
 let projectPath;
+const fs = require('fs').promises;
+const path = require('path');
 /**
  * Sends a message to the user interface.
  * @param {string} message - The message to be sent to the UI.
@@ -59,10 +61,10 @@ async function send_message_to_ui(message, type) {
 async function ask_question(question, type) {
     let buttons = [{
         text: "Yes",
-        value: "yesButtonTapped"
+        value: "yes"
     }, {
         text: "No",
-        value: "noButtonTapped"
+        value: "no"
     }];
     let paylod = {
         type: "",
@@ -71,8 +73,14 @@ async function ask_question(question, type) {
     }
     let agentMessage = ""
     function setPrimaryButtonText(text) {
-        buttons[0].text = text
-        buttons[0].value = text
+        if (text === undefined) {
+            buttons.splice(0, 1); // Remove the second button from the array
+        }
+        else{
+            buttons[0].text = text
+            buttons[0].value = text
+        }
+      
     }
     function setSecondaryButtonText(text) {
         if (text === undefined) {
@@ -94,8 +102,8 @@ async function ask_question(question, type) {
             setSecondaryButtonText("Start New Task")
             break
         case "followup":
-            // setPrimaryButtonText(undefined)
-            // setSecondaryButtonText(undefined)
+            setPrimaryButtonText(undefined)
+            setSecondaryButtonText(undefined)
             break
         case "tool":
             const tool = JSON.parse(question || "{}")
@@ -285,14 +293,13 @@ async function currentProjectPath() {
         // For example, you might want to throw an error or return a default value
         let { projectPath } = await codebolt.project.getProjectPath();
         console.log(projectPath)
-        currentProjectPath = projectPath
-        return currentProjectPath
+       let _currentProjectPath = projectPath
+        return _currentProjectPath
 
     }
 }
 async function getInstructionsForAgent(){
-    const fs = require('fs').promises;
-    const path = require('path');
+ 
     if (projectPath) {
         const filePath = path.join(projectPath, 'codebltInstruction.md');
         try {
@@ -303,8 +310,8 @@ async function getInstructionsForAgent(){
             return '';
         }
     } else {
-        await currentProjectPath();
-        const filePath = path.join(currentProjectPath, 'codebltInstruction.md');
+      let projectPath=  await currentProjectPath();
+        const filePath = path.join(projectPath, 'codebltInstruction.md');
         try {
             const fileContent = await fs.readFile(filePath, 'utf-8');
             return fileContent;
