@@ -19,7 +19,7 @@ const { findLast, findLastIndex, formatContentBlockToMarkdown } = require("./uti
 const { truncateHalfConversation } = require("./utils/context-management");
 const { extractTextFromFile } = require("./utils/extract-text");
 const { regexSearchFiles } = require("./utils/ripgrep");
-const { send_message_to_ui, ask_question, executeCommand,currentProjectPath, sendNotification,getInstructionsForAgent } = require("./utils/codebolt-helper");
+const { send_message_to_ui, ask_question, executeCommand,currentProjectPath, sendNotification,getInstructionsForAgent, listCodeDefinitionNames, readFile ,writeToFile,searchFiles} = require("./utils/codebolt-helper");
 
 var cwd;// = '/Users/ravirawat/Desktop/codebolt/timer-application'
 var codebolt_instructions;
@@ -697,17 +697,17 @@ class CodeboltDev {
 	async executeTool(toolName, toolInput) {
 		switch (toolName) {
 			case "write_to_file":
-				return this.writeToFile(toolInput.path, toolInput.content)
+				return writeToFile(toolInput.path, toolInput.content)
 			case "read_file":
-				return this.readFile(toolInput.path)
+				return readFile(toolInput.path)
 			case "list_files":
-				return this.listFiles(toolInput.path, toolInput.recursive)
+				return listFiles(toolInput.path, toolInput.recursive)
 			case "list_code_definition_names":
-				return this.listCodeDefinitionNames(toolInput.path)
+				return listCodeDefinitionNames(toolInput.path)
 			case "search_files":
-				return this.searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern)
+				return searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern)
 			case "execute_command":
-				return this.executeCommand(toolInput.command)
+				return executeCommand(toolInput.command)
 			case "ask_followup_question":
 				return this.askFollowupQuestion(toolInput.question)
 			case "attempt_completion":
@@ -740,7 +740,7 @@ class CodeboltDev {
 	}
 
 	// return is [didUserRejectTool, ToolResponse]
-	async writeToFile(relPath, newContent) {
+	async _writeToFile(relPath, newContent) {
 		if (relPath === undefined) {
 			this.consecutiveMistakeCount++
 			return [false, await this.sayAndCreateMissingParamError("write_to_file", "path")]
@@ -1155,7 +1155,7 @@ class CodeboltDev {
 		}
 	}
 
-	async readFile(relPath) {
+	async _readFile(relPath) {
 		if (relPath === undefined) {
 			this.consecutiveMistakeCount++
 			return [false, await this.sayAndCreateMissingParamError("read_file", "path")]
@@ -1305,7 +1305,7 @@ class CodeboltDev {
 		}
 	}
 
-	async listCodeDefinitionNames(relDirPath) {
+	async _listCodeDefinitionNames(relDirPath) {
 		if (relDirPath === undefined) {
 			this.consecutiveMistakeCount++
 			return [false, await this.sayAndCreateMissingParamError("list_code_definition_names", "path")]
@@ -1351,7 +1351,7 @@ class CodeboltDev {
 		}
 	}
 
-	async searchFiles(relDirPath, regex, filePattern) {
+	async _searchFiles(relDirPath, regex, filePattern) {
 		if (relDirPath === undefined) {
 			this.consecutiveMistakeCount++
 			return [false, await this.sayAndCreateMissingParamError("search_files", "path")]
@@ -1404,7 +1404,7 @@ class CodeboltDev {
 	}
 
 	
-	async executeCommand(
+	async _executeCommand(
 		command,
 		returnEmptyStringOnSuccess = false
 	) {
@@ -1552,7 +1552,7 @@ class CodeboltDev {
 		if (command) {
 			await this.say("completion_result", resultToSend)
 			// TODO: currently we don't handle if this command fails, it could be useful to let claude know and retry
-			const [didUserReject, commandResult] = await this.executeCommand(command, true)
+			const [didUserReject, commandResult] = await executeCommand(command, true)
 			// if we received non-empty string, the command was rejected or failed
 			if (commandResult) {
 				return [didUserReject, commandResult]

@@ -2,7 +2,7 @@ const codebolt = require('@codebolt/codeboltjs').default
 
 const { CodeboltDevProvider } = require('./providers/CodeboltDevProvider');
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-        await codebolt.waitForConnection();
+    
         let message = req.message;
         let mentionedFiles = req.message.mentionedFiles || [];
         console.log(mentionedFiles);

@@ -76,11 +76,11 @@ async function ask_question(question, type) {
         if (text === undefined) {
             buttons.splice(0, 1); // Remove the second button from the array
         }
-        else{
+        else {
             buttons[0].text = text
             buttons[0].value = text
         }
-      
+
     }
     function setSecondaryButtonText(text) {
         if (text === undefined) {
@@ -232,7 +232,7 @@ async function ask_question(question, type) {
             break
     }
     // console.log("sending message ", question, buttons)
-    const response = await codebolt.chat.sendConfirmationRequest(question, buttons,true);
+    const response = await codebolt.chat.sendConfirmationRequest(question, buttons, true);
     // console.log(message.userMessage);
     return response
 
@@ -242,15 +242,71 @@ async function send_message(message, paylod) {
     codebolt.chat.sendMessage(message, paylod)
 }
 
-async function sendNotification(type,message){
-    codebolt.chat.sendNotificationEvent(message,type)
+
+async function readFile(filePath) {
+    try {
+        let = { success, result } = await codebolt.fs.readFile(filePath);
+        console.log("response", success, result)
+        return [success, result]
+    } catch (error) {
+        console.error(`Failed to read file at ${filePath}:`, error);
+        throw error;
+    }
+}
+
+async function writeToFile(filePath, content) {
+    try {
+        let = { success, result } = await codebolt.fs.writeToFile(filePath, content);
+        console.log("response", success, result)
+        return [success, result]
+
+    } catch (error) {
+        console.error(`Failed to write to file at ${filePath}:`, error);
+        throw error;
+    }
+}
+
+async function listFiles(directoryPath, recursive = false) {
+    try {
+      let = { success, result } = await codebolt.fs.listFile(directoryPath, recursive);
+        return [success, result]
+    } catch (error) {
+        console.error(`Failed to list files in directory ${directoryPath}:`, error);
+        throw error;
+    }
+}
+
+async function listCodeDefinitionNames(filePath) {
+    try {
+        let = { success, result } = await codebolt.fs.listCodeDefinitionNames(filePath);
+        return [success, result]
+    } catch (error) {
+        console.error(`Failed to list code definitions in file ${filePath}:`, error);
+        throw error;
+    }
+}
+
+async function searchFiles(directoryPath, regex, filePattern) {
+    try {
+        let = { success, result } =  await codebolt.fs.searchFiles(directoryPath, regex, filePattern);
+        return [success, result]
+    } catch (error) {
+        console.error(`Failed to search files in directory ${directoryPath}:`, error);
+        throw error;
+    }
+}
+
+
+
+async function sendNotification(type, message) {
+    codebolt.chat.sendNotificationEvent(message, type)
 
 }
 
 
-async function executeCommand(command) {
-    const response = await codebolt.terminal.executeCommand(command);
-    return response
+async function executeCommand(command,returnEmptyStringOnSuccess) {
+    let = { success, result } =  await codebolt.terminal.executeCommand(command,returnEmptyStringOnSuccess);
+    return [success, result]
 }
 
 /**
@@ -293,13 +349,13 @@ async function currentProjectPath() {
         // For example, you might want to throw an error or return a default value
         let { projectPath } = await codebolt.project.getProjectPath();
         console.log(projectPath)
-       let _currentProjectPath = projectPath
+        let _currentProjectPath = projectPath
         return _currentProjectPath
 
     }
 }
-async function getInstructionsForAgent(){
- 
+async function getInstructionsForAgent() {
+
     if (projectPath) {
         const filePath = path.join(projectPath, 'codebltInstruction.md');
         try {
@@ -310,7 +366,7 @@ async function getInstructionsForAgent(){
             return '';
         }
     } else {
-      let projectPath=  await currentProjectPath();
+        let projectPath = await currentProjectPath();
         const filePath = path.join(projectPath, 'codebltInstruction.md');
         try {
             const fileContent = await fs.readFile(filePath, 'utf-8');
@@ -329,5 +385,10 @@ module.exports = {
     ask_question,
     executeCommand,
     currentProjectPath,
-    sendNotification
+    sendNotification,
+    writeToFile,
+    readFile,
+    listFiles,
+    searchFiles,
+    listCodeDefinitionNames
 }
