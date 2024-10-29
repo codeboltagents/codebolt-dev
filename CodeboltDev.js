@@ -73,7 +73,7 @@ RULES
 - When presented with images, utilize your vision capabilities to thoroughly examine them and extract meaningful information. Incorporate these insights into your thought process as you accomplish the user's task.
 - At the end of each user message, you will automatically receive environment_details. This information is not written by the user themselves, but is auto-generated to provide potentially relevant context about the project structure and environment. While this information can be valuable for understanding the project context, do not treat it as a direct part of the user's request or response. Use it to inform your actions and decisions, but don't assume the user is explicitly asking about or referring to this information unless they clearly do so in their message. When using environment_details, explain your actions clearly to ensure the user understands, as they may not be aware of these details.
 - CRITICAL: When editing files with write_to_file, ALWAYS provide the COMPLETE file content in your response. This is NON-NEGOTIABLE. Partial updates or placeholders like '// rest of code unchanged' are STRICTLY FORBIDDEN. You MUST include ALL parts of the file, even if they haven't been modified. Failure to do so will result in incomplete or broken code, severely impacting the user's project.
-
+- Do not use the 'open' command to run the project. Instead, use 'npx http-server' to serve static HTML files.
 ====
 
 OBJECTIVE
@@ -1549,16 +1549,16 @@ class CodeboltDev {
 		}
 		this.consecutiveMistakeCount = 0
 		let resultToSend = result
-		if (command) {
-			await this.say("completion_result", resultToSend)
-			// TODO: currently we don't handle if this command fails, it could be useful to let claude know and retry
-			const [didUserReject, commandResult] = await executeCommand(command, true)
-			// if we received non-empty string, the command was rejected or failed
-			if (commandResult) {
-				return [didUserReject, commandResult]
-			}
-			resultToSend = ""
-		}
+		// if (command) {
+		// 	await this.say("completion_result", resultToSend)
+		// 	// TODO: currently we don't handle if this command fails, it could be useful to let claude know and retry
+		// 	const [didUserReject, commandResult] = await executeCommand(command, true)
+		// 	// if we received non-empty string, the command was rejected or failed
+		// 	if (commandResult) {
+		// 		return [didUserReject, commandResult]
+		// 	}
+		// 	resultToSend = ""
+		// }
 		
 		// const { response, text, images } = await this.ask("completion_result", resultToSend) // this prompts webview to show 'new task' button, and enable text input (which would be the 'text' here)
 		// if (!Object.values(ApproveButtons).includes(response)) {
@@ -1672,7 +1672,7 @@ ${this.customInstructions.trim()}
 
 		// getting verbose details is an expensive operation, it uses globby to top-down build file structure of project which for large projects can take a few seconds
 		// for the best UX we show a placeholder api_req_started message with a loading spinner as this happens
-		sendNotification('debug',"Sending Request To AI ...: View Logs")
+		// sendNotification('debug',"Sending Request To AI ...: View Logs")
 
 		await this.say(
 			"api_req_started",

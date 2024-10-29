@@ -59,13 +59,7 @@ async function send_message_to_ui(message, type) {
     await send_message(agentMessage, paylod)
 }
 async function ask_question(question, type) {
-    let buttons = [{
-        text: "Yes",
-        value: "yes"
-    }, {
-        text: "No",
-        value: "no"
-    }];
+    let buttons = [];
     let paylod = {
         type: "",
         path: "",
@@ -74,7 +68,7 @@ async function ask_question(question, type) {
     let agentMessage = ""
     function setPrimaryButtonText(text) {
         if (text === undefined) {
-            buttons.splice(0, 1); // Remove the second button from the array
+           
         }
         else {
             buttons[0].text = text
@@ -84,7 +78,7 @@ async function ask_question(question, type) {
     }
     function setSecondaryButtonText(text) {
         if (text === undefined) {
-            buttons.splice(1, 1); // Remove the second button from the array
+           
         }
         else {
             buttons[1].value = text

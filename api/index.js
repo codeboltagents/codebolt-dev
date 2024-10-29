@@ -14,7 +14,7 @@ function buildApiHandler(configuration) {
 			return new OpenAiHandler(options);
 	
 		default:
-			return new AnthropicHandler(options);
+			return new OpenAiHandler(options);
 	}
 }
 
