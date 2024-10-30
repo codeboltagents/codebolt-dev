@@ -46,7 +46,7 @@ async function send_message_to_ui(message, type) {
                     agentMessage = `Codebolt searched this directory for <code>{tool.regex}</code>:`;
                     break;
                 default:
-                    return null
+                    agentMessage = message
                     break;
             }
 
@@ -59,7 +59,13 @@ async function send_message_to_ui(message, type) {
     await send_message(agentMessage, paylod)
 }
 async function ask_question(question, type) {
-    let buttons = [];
+    let buttons = [{
+        text: "Yes",
+        value: "yes"
+    }, {
+        text: "No",
+        value: "no"
+    }];
     let paylod = {
         type: "",
         path: "",
@@ -68,7 +74,7 @@ async function ask_question(question, type) {
     let agentMessage = ""
     function setPrimaryButtonText(text) {
         if (text === undefined) {
-           
+            buttons.splice(0, 1); // Remove the second button from the array
         }
         else {
             buttons[0].text = text
@@ -78,7 +84,7 @@ async function ask_question(question, type) {
     }
     function setSecondaryButtonText(text) {
         if (text === undefined) {
-           
+            buttons.splice(1, 1); // Remove the second button from the array
         }
         else {
             buttons[1].value = text
@@ -262,7 +268,7 @@ async function writeToFile(filePath, content) {
 
 async function listFiles(directoryPath, recursive = false) {
     try {
-      let = { success, result } = await codebolt.fs.listFile(directoryPath, recursive);
+        let = { success, result } = await codebolt.fs.listFile(directoryPath, recursive);
         return [success, result]
     } catch (error) {
         console.error(`Failed to list files in directory ${directoryPath}:`, error);
@@ -282,7 +288,7 @@ async function listCodeDefinitionNames(filePath) {
 
 async function searchFiles(directoryPath, regex, filePattern) {
     try {
-        let = { success, result } =  await codebolt.fs.searchFiles(directoryPath, regex, filePattern);
+        let = { success, result } = await codebolt.fs.searchFiles(directoryPath, regex, filePattern);
         return [success, result]
     } catch (error) {
         console.error(`Failed to search files in directory ${directoryPath}:`, error);
@@ -298,8 +304,8 @@ async function sendNotification(type, message) {
 }
 
 
-async function executeCommand(command,returnEmptyStringOnSuccess) {
-    let = { success, result } =  await codebolt.terminal.executeCommand(command,returnEmptyStringOnSuccess);
+async function executeCommand(command, returnEmptyStringOnSuccess) {
+    let = { success, result } = await codebolt.terminal.executeCommand(command, returnEmptyStringOnSuccess);
     return [success, result]
 }
 
@@ -309,6 +315,7 @@ async function executeCommand(command,returnEmptyStringOnSuccess) {
  * @param {string} model - The LLM model to use (e.g., GPT-4, Codebolt-3).
  */
 async function send_message_to_llm(prompt) {
+    
     let { completion } = await codebolt.llm.inference(prompt);
     return completion
 }
@@ -348,6 +355,15 @@ async function currentProjectPath() {
 
     }
 }
+
+async function getProjectState() {
+    try {
+        let { state } = await codebolt.cbstate.getApplicationState();
+        return state.projectState.state;
+    } catch (error) {
+        return {};
+    }
+}
 async function getInstructionsForAgent() {
 
     if (projectPath) {
@@ -371,6 +387,59 @@ async function getInstructionsForAgent() {
         }
     }
 }
+function formatAIMessage(completion) {
+	const openAiMessage = completion.choices[0].message;
+	const anthropicMessage = {
+		id: completion.id,
+		type: "message",
+		role: openAiMessage.role,
+		content: [
+			{
+				type: "text",
+				text: openAiMessage.content || "",
+			},
+		],
+		model: completion.model,
+		stop_reason: (() => {
+			switch (completion.choices[0].finish_reason) {
+				case "stop":
+					return "end_turn";
+				case "length":
+					return "max_tokens";
+				case "tool_calls":
+					return "tool_use";
+				case "content_filter":
+				default:
+					return null;
+			}
+		})(),
+		stop_sequence: null,
+		usage: {
+			input_tokens: completion.usage?.prompt_tokens || 0,
+			output_tokens: completion.usage?.completion_tokens || 0,
+		},
+	};
+
+	if (openAiMessage.tool_calls && openAiMessage.tool_calls.length > 0) {
+		anthropicMessage.content.push(
+			...openAiMessage.tool_calls.map((toolCall) => {
+				let parsedInput = {};
+				try {
+					parsedInput = JSON.parse(toolCall.function.arguments || "{}");
+				} catch (error) {
+					console.error("Failed to parse tool arguments:", error);
+				}
+				return {
+					type: "tool_use",
+					id: toolCall.id,
+					name: toolCall.function.name,
+					input: parsedInput,
+				};
+			})
+		);
+	}
+	return anthropicMessage;
+ }
 module.exports = {
     send_message_to_ui,
     send_message_to_llm,
@@ -384,5 +453,7 @@ module.exports = {
     readFile,
     listFiles,
     searchFiles,
-    listCodeDefinitionNames
+    listCodeDefinitionNames,
+    getProjectState,
+    formatAIMessage
 }
