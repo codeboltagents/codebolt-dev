@@ -1,15 +1,30 @@
 {
-  "name": "codebot-dev-updated",
+  "name": "codebolt-dev",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "watch:esbuild": "node esbuild.js --watch",
+    "build": "webpack"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@codebolt/codeboltjs": "^1.1.68"
+    "@codebolt/codeboltjs": "^1.1.68",
+    "babel-loader": "^9.2.1",
+    "bufferutil": "^4.0.8",
+    "copy-webpack-plugin": "^12.0.2",
+    "os-name": "^6.0.0",
+    "path-browserify": "^1.0.1",
+    "serialize-error": "^11.0.3",
+    "utf-8-validate": "^6.0.5"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.0.0",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
   }
 }

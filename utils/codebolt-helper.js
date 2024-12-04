@@ -245,7 +245,7 @@ async function send_message(message, paylod) {
 
 async function readFile(filePath) {
     try {
-        let = { success, result } = await codebolt.fs.readFile(filePath);
+        let{ success, result } = await codebolt.fs.readFile(filePath);
         console.log("response", success, result)
         return [success, result]
     } catch (error) {
@@ -256,7 +256,7 @@ async function readFile(filePath) {
 
 async function writeToFile(filePath, content) {
     try {
-        let = { success, result } = await codebolt.fs.writeToFile(filePath, content);
+        let{ success, result } = await codebolt.fs.writeToFile(filePath, content);
         console.log("response", success, result)
         return [success, result]
 
@@ -268,7 +268,7 @@ async function writeToFile(filePath, content) {
 
 async function listFiles(directoryPath, recursive = false) {
     try {
-        let = { success, result } = await codebolt.fs.listFile(directoryPath, recursive);
+        let{ success, result } = await codebolt.fs.listFile(directoryPath, recursive);
         return [success, result]
     } catch (error) {
         console.error(`Failed to list files in directory ${directoryPath}:`, error);
@@ -278,7 +278,7 @@ async function listFiles(directoryPath, recursive = false) {
 
 async function listCodeDefinitionNames(filePath) {
     try {
-        let = { success, result } = await codebolt.fs.listCodeDefinitionNames(filePath);
+        let{ success, result } = await codebolt.fs.listCodeDefinitionNames(filePath);
         return [success, result]
     } catch (error) {
         console.error(`Failed to list code definitions in file ${filePath}:`, error);
@@ -288,7 +288,7 @@ async function listCodeDefinitionNames(filePath) {
 
 async function searchFiles(directoryPath, regex, filePattern) {
     try {
-        let = { success, result } = await codebolt.fs.searchFiles(directoryPath, regex, filePattern);
+        let{ success, result } = await codebolt.fs.searchFiles(directoryPath, regex, filePattern);
         return [success, result]
     } catch (error) {
         console.error(`Failed to search files in directory ${directoryPath}:`, error);
@@ -305,7 +305,7 @@ async function sendNotification(type, message) {
 
 
 async function executeCommand(command, returnEmptyStringOnSuccess) {
-    let = { success, result } = await codebolt.terminal.executeCommand(command, returnEmptyStringOnSuccess);
+    let{ success, result } = await codebolt.terminal.executeCommand(command, returnEmptyStringOnSuccess);
     return [success, result]
 }
 
