@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs/promises");
 const os = require("os");
 const { formatContentBlockToMarkdown, convertToOpenAiMessages } = require("./utils/export-markdown");
-const { currentProjectPath, send_message_to_llm, send_message_to_ui, formatAIMessage, writeToFile, readFile, executeCommand } = require("./utils/codebolt-helper");
+const { currentProjectPath, , send_message_to_ui, formatAIMessage, , , } = require("./utils/codebolt-helper");
 const { getSystemPrompt, getTools } = require("./prompt/prompts");
 let cwd;
 
@@ -58,18 +58,13 @@ class CodeboltDev {
             codeboltAskReaponse.type === "feedbackResponse"
             this.handleWebviewAskResponse("messageResponse", codeboltAskReaponse.message.userMessage, [])
         }
-        // await pWaitFor(() => this.askResponse !== undefined || this.lastMessageTs !== askTs, { interval: 100 })
-        if (this.lastMessageTs !== askTs) {
-            //throw new Error("Current ask promise was ignored") // could happen if we send multiple asks in a row i.e. with command_output. It's important that when we know an ask could fail, it is handled gracefully
-        }
+
+
         if (!this.askResponse) {
             // Finish the process or exit the function
             return;
         }
-        // await pWaitFor(() => this.askResponse !== undefined || this.lastMessageTs !== askTs, { interval: 100 })
-        if (this.lastMessageTs !== askTs) {
-            //throw new Error("Current ask promise was ignored") // could happen if we send multiple asks in a row i.e. with command_output. It's important that when we know an ask could fail, it is handled gracefully
-        }
+
         const result = { response: this.askResponse, text: this.askResponseText, images: this.askResponseImages }
         this.askResponse = undefined
         this.askResponseText = undefined
@@ -83,8 +78,6 @@ class CodeboltDev {
         }
         const sayTs = Date.now()
         this.lastMessageTs = sayTs
-        // await this.addToClaudeMessages({ ts: sayTs, type: "say", say: type, text: text, images })
-        // await this.providerRef.deref()?.postStateToWebview()
         if (type == "text" || type == "error" || type == "tool" || type == "command")
             if (text != "" && !isUserMessage)
                 send_message_to_ui(text, type);
@@ -95,7 +88,9 @@ class CodeboltDev {
         this.claudeMessages = []
         this.apiConversationHistory = []
         await this.say("text", task, images, true)
-        cwd = await currentProjectPath();
+        let { projectPath } = await codebolt.project.getProjectPath(); 
+        cwd = projectPath
+         //currentProjectPath();
         let imageBlocks = this.formatImagesIntoBlocks(images)
         await this.initiateTaskLoop([
             {
@@ -124,10 +119,7 @@ class CodeboltDev {
                 //this.say("task_completed", `Task completed. Total API usage cost: ${totalCost}`)
                 break
             } else {
-                // this.say(
-                // 	"tool",
-                // 	"Claude responded with only text blocks but has not called attempt_completion yet. Forcing him to continue with task..."
-                // )
+
                 nextUserContent = [
                     {
                         type: "text",
@@ -147,17 +139,24 @@ class CodeboltDev {
     async executeTool(toolName, toolInput) {
         switch (toolName) {
             case "write_to_file":
-                return writeToFile(toolInput.path, toolInput.content)
+                let { success, result } = await codebolt.fs.writeToFile(toolInput.path, toolInput.content);
+                return [success, result];
             case "read_file":
-                return readFile(toolInput.path)
+                let { success, result } = await codebolt.fs.readFile(toolInput.path);
+                return [success, result]
             case "list_files":
-                return listFiles(toolInput.path, toolInput.recursive)
+                let { success, result } = await codebolt.fs.listFile(toolInput.path, toolInput.recursive);
+                return [success, result]
             case "list_code_definition_names":
-                return listCodeDefinitionNames(toolInput.path)
+                let { success, result } = await codebolt.fs.listCodeDefinitionNames(toolInput.path);
+                return [success, result]
             case "search_files":
-                return searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern)
+                let { success, result } = await codebolt.fs.searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern);
+                return [success, result]
             case "execute_command":
-                return executeCommand(toolInput.command)
+                let { success, result } = await codebolt.terminal.executeCommand(toolInput.command, false);
+                return [success, result]
+
             case "ask_followup_question":
                 return this.askFollowupQuestion(toolInput.question)
             case "attempt_completion":
@@ -187,21 +186,9 @@ class CodeboltDev {
         }
         this.consecutiveMistakeCount = 0
         let resultToSend = result
-        // if (command) {
-        // 	await this.say("completion_result", resultToSend)
-        // 	// TODO: currently we don't handle if this command fails, it could be useful to let claude know and retry
-        // 	const [didUserReject, commandResult] = await executeCommand(command, true)
-        // 	// if we received non-empty string, the command was rejected or failed
-        // 	if (commandResult) {
-        // 		return [didUserReject, commandResult]
-        // 	}
-        // 	resultToSend = ""
-        // }
 
-        // const { response, text, images } = await this.ask("completion_result", resultToSend) // this prompts webview to show 'new task' button, and enable text input (which would be the 'text' here)
-        // if (!Object.values(ApproveButtons).includes(response)) {
         return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
-        // }
+
         await this.say("user_feedback", text ?? "", images)
         return [
             true,
@@ -231,25 +218,7 @@ ${this.customInstructions.trim()}
 `
             }
 
-            // If the last API request's total token usage is close to the context window, truncate the conversation history to free up space for the new request
-            // const lastApiReqFinished = findLast(this.claudeMessages, (m) => m.say === "api_req_finished")
-            // if (lastApiReqFinished && lastApiReqFinished.text) {
-            //     const {
-            //         tokensIn,
-            //         tokensOut,
-            //         cacheWrites,
-            //         cacheReads,
-            //     } = JSON.parse(
-            //         lastApiReqFinished.text
-            //     )
-            //     const totalTokens = (tokensIn || 0) + (tokensOut || 0) + (cacheWrites || 0) + (cacheReads || 0)
-            //     const contextWindow = this.api.getModel().info.contextWindow
-            //     const maxAllowedSize = Math.max(contextWindow - 40_000, contextWindow * 0.8)
-            //     if (totalTokens >= maxAllowedSize) {
-            //         const truncatedMessages = truncateHalfConversation(this.apiConversationHistory)
-            //         await this.overwriteApiConversationHistory(truncatedMessages)
-            //     }
-            // }
+
             let tools = getTools(cwd)
             let systemMessage = { role: "system", content: systemPrompt };
             let messages = this.apiConversationHistory;
@@ -261,16 +230,9 @@ ${this.customInstructions.trim()}
                 tools: tools,
                 tool_choice: "auto",
             };
-            const completion = await send_message_to_llm(createParams) //await this.client.chat.completions.create(createParams);
 
-            // console.log(createParams.tools)
-            // const completion = await send_message_to_llm(createParams) //await this.client.chat.completions.create(crea
+            let { completion } = await codebolt.llm.inference(createParams);
 
-            // const { message, userCredits } = await this.api.createMessage(
-            //     systemPrompt,
-            //     this.apiConversationHistory,
-            //     tools
-            // )
             return completion
             // return {message}
         } catch (error) {
@@ -318,9 +280,6 @@ ${this.customInstructions.trim()}
             this.consecutiveMistakeCount = 0
         }
 
-        // getting verbose details is an expensive operation, it uses globby to top-down build file structure of project which for large projects can take a few seconds
-        // for the best UX we show a placeholder api_req_started message with a loading spinner as this happens
-        // sendNotification('debug',"Sending Request To AI ...: View Logs")
 
         await this.say(
             "api_req_started",
@@ -348,14 +307,6 @@ ${this.customInstructions.trim()}
 
         }
 
-       // since we sent off a placeholder api_req_started message to update the webview while waiting to actually start the API request (to load potential details for example), we need to update the text of that message
-        // const lastApiReqIndex = findLastIndex(this.claudeMessages, (m) => m.say === "api_req_started")
-        // this.claudeMessages[lastApiReqIndex].text = JSON.stringify({
-        // 	request: userContent
-        // 		.map((block) => formatContentBlockToMarkdown(block, this.apiConversationHistory))
-        // 		.join("\n\n"),
-        // })
-        // await this.saveCodeboltMessages()
 
         try {
             const response = await this.attemptApiRequest()
@@ -415,41 +366,41 @@ ${this.customInstructions.trim()}
             let toolResults = []
             let attemptCompletionBlock
             let userRejectedATool = false;
-            const contentBlock=response.choices[0]
+            const contentBlock = response.choices[0]
             // for (const contentBlock of response.choices response.ch) {
-                if (contentBlock.message && contentBlock.message.tool_calls) {
-                    for (const tool of contentBlock.message.tool_calls) {
-                        const toolName = tool.function.name
-                        const toolInput = JSON.parse(tool.function.arguments || "{}");
-                        const toolUseId = tool.id
+            if (contentBlock.message && contentBlock.message.tool_calls) {
+                for (const tool of contentBlock.message.tool_calls) {
+                    const toolName = tool.function.name
+                    const toolInput = JSON.parse(tool.function.arguments || "{}");
+                    const toolUseId = tool.id
 
-                        if (userRejectedATool) {
-                            toolResults.push({
-                                type: "tool",
-                                tool_use_id: toolUseId,
-                                content: "Skipping tool execution due to previous tool user rejection.",
-                            })
-                            continue
-                        }
-
-                        if (toolName === "attempt_completion") {
-                            attemptCompletionBlock = tool
-                        } else {
-                            const [didUserReject, result] = await this.executeTool(toolName, toolInput)
-                            toolResults.push({
-                                role: "tool",
-                                tool_call_id: toolUseId,
-                                content: result,
-                            })
-                            // toolResults.push({ type: "tool_result", tool_use_id: toolUseId, content: result })
-
-                            if (didUserReject) {
-                                userRejectedATool = true
-                            }
-                        }
+                    if (userRejectedATool) {
+                        toolResults.push({
+                            type: "tool",
+                            tool_use_id: toolUseId,
+                            content: "Skipping tool execution due to previous tool user rejection.",
+                        })
+                        continue
                     }
 
+                    if (toolName === "attempt_completion") {
+                        attemptCompletionBlock = tool
+                    } else {
+                        const [didUserReject, result] = await this.executeTool(toolName, toolInput)
+                        toolResults.push({
+                            role: "tool",
+                            tool_call_id: toolUseId,
+                            content: result,
+                        })
+                        // toolResults.push({ type: "tool_result", tool_use_id: toolUseId, content: result })
+
+                        if (didUserReject) {
+                            userRejectedATool = true
+                        }
+                    }
                 }
+
+            }
             // }
 
             let didEndLoop = false
@@ -461,7 +412,7 @@ ${this.customInstructions.trim()}
                     attemptCompletionBlock.function.name,
                     JSON.parse(attemptCompletionBlock.function.arguments || "{}")
                 )
-               
+
                 if (result === "") {
                     didEndLoop = true
                     result = "The user is satisfied with the result."
@@ -476,7 +427,7 @@ ${this.customInstructions.trim()}
 
             if (toolResults.length > 0) {
                 if (didEndLoop) {
-                    for (let result of toolResults){
+                    for (let result of toolResults) {
                         await this.addToApiConversationHistory(result)
                     }
                     await this.addToApiConversationHistory({
@@ -564,9 +515,8 @@ ${this.customInstructions.trim()}
             details += "\n(No open tabs)"
         }
 
-        const busyTerminals = [] //this.terminalManager.getTerminals(true)
-        const inactiveTerminals = []// this.terminalManager.getTerminals(false)
-        // const allTerminals = [...busyTerminals, ...inactiveTerminals]
+        const busyTerminals = []
+
 
         if (busyTerminals.length > 0 && this.didEditFile) {
             //  || this.didEditFile

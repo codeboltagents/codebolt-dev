@@ -49,14 +49,12 @@ async function send_message_to_ui(message, type) {
                     agentMessage = message
                     break;
             }
-
-
-
         default:
             agentMessage = message
             break;
     }
-    await send_message(agentMessage, paylod)
+
+    await codebolt.chat.sendMessage(agentMessage, paylod)
 }
 async function ask_question(question, type) {
     let buttons = [{
@@ -174,7 +172,7 @@ async function ask_question(question, type) {
 
             }
             question = undefined
-            await send_message(agentMessage, paylod)
+            await codebolt.chat.sendMessage(agentMessage, paylod)
             break
         case "command":
             paylod.type = "command"
@@ -209,7 +207,7 @@ async function ask_question(question, type) {
             const { command, output } = splitMessage(question || "")
             paylod.command = command;
             agentMessage = "Codebolt wants to execute this command:";
-            await send_message(agentMessage, paylod)
+            await codebolt.chat.sendMessage(agentMessage, paylod)
             question = undefined
             setPrimaryButtonText("Run Command")
             setSecondaryButtonText("Reject")
@@ -237,223 +235,62 @@ async function ask_question(question, type) {
     return response
 
 }
-async function send_message(message, paylod) {
-    console.log(JSON.stringify(message, paylod))
-    codebolt.chat.sendMessage(message, paylod)
-}
 
-
-async function readFile(filePath) {
-    try {
-        let{ success, result } = await codebolt.fs.readFile(filePath);
-        console.log("response", success, result)
-        return [success, result]
-    } catch (error) {
-        console.error(`Failed to read file at ${filePath}:`, error);
-        throw error;
-    }
-}
-
-async function writeToFile(filePath, content) {
-    try {
-        let{ success, result } = await codebolt.fs.writeToFile(filePath, content);
-        console.log("response", success, result)
-        return [success, result]
-
-    } catch (error) {
-        console.error(`Failed to write to file at ${filePath}:`, error);
-        throw error;
-    }
-}
-
-async function listFiles(directoryPath, recursive = false) {
-    try {
-        let{ success, result } = await codebolt.fs.listFile(directoryPath, recursive);
-        return [success, result]
-    } catch (error) {
-        console.error(`Failed to list files in directory ${directoryPath}:`, error);
-        throw error;
-    }
-}
-
-async function listCodeDefinitionNames(filePath) {
-    try {
-        let{ success, result } = await codebolt.fs.listCodeDefinitionNames(filePath);
-        return [success, result]
-    } catch (error) {
-        console.error(`Failed to list code definitions in file ${filePath}:`, error);
-        throw error;
-    }
-}
-
-async function searchFiles(directoryPath, regex, filePattern) {
-    try {
-        let{ success, result } = await codebolt.fs.searchFiles(directoryPath, regex, filePattern);
-        return [success, result]
-    } catch (error) {
-        console.error(`Failed to search files in directory ${directoryPath}:`, error);
-        throw error;
-    }
-}
-
-
-
-async function sendNotification(type, message) {
-    codebolt.chat.sendNotificationEvent(message, type)
-
-}
-
-
-async function executeCommand(command, returnEmptyStringOnSuccess) {
-    let{ success, result } = await codebolt.terminal.executeCommand(command, returnEmptyStringOnSuccess);
-    return [success, result]
-}
-
-/**
- * Sends a message to the Language Learning Model (LLM).
- * @param {string} message - The message to be sent to the LLM.
- * @param {string} model - The LLM model to use (e.g., GPT-4, Codebolt-3).
- */
-async function send_message_to_llm(prompt) {
-    
-    let { completion } = await codebolt.llm.inference(prompt);
-    return completion
-}
-
-async function get_default_llm() {
-    try {
-        await codebolt.waitForConnection();
-        let { state } = await codebolt.cbstate.getApplicationState();
-        console.log(state)
-        if (state.appState && state.appState.defaultApplicationLLM) {
-            return state.appState.defaultApplicationLLM.name.replace(/\s+/g, '').toLowerCase();
-        }
-        else {
-            return null
-        }
-    } catch (error) {
-        return null
-    }
-
-}
-
-
-
-
-async function currentProjectPath() {
-    await codebolt.waitForConnection();
-
-    if (projectPath) {
-        return projectPath;
-    } else {
-        // Call a function or handle the case when projectPath is not available
-        // For example, you might want to throw an error or return a default value
-        let { projectPath } = await codebolt.project.getProjectPath();
-        console.log(projectPath)
-        let _currentProjectPath = projectPath
-        return _currentProjectPath
-
-    }
-}
-
-async function getProjectState() {
-    try {
-        let { state } = await codebolt.cbstate.getApplicationState();
-        return state.projectState.state;
-    } catch (error) {
-        return {};
-    }
-}
-async function getInstructionsForAgent() {
-
-    if (projectPath) {
-        const filePath = path.join(projectPath, 'codebltInstruction.md');
-        try {
-            const fileContent = await fs.readFile(filePath, 'utf-8');
-            return fileContent;
-        } catch (error) {
-            console.error('Error reading codebltInstruction.md:', error);
-            return '';
-        }
-    } else {
-        let projectPath = await currentProjectPath();
-        const filePath = path.join(projectPath, 'codebltInstruction.md');
-        try {
-            const fileContent = await fs.readFile(filePath, 'utf-8');
-            return fileContent;
-        } catch (error) {
-            console.error('Error reading codebltInstruction.md:', error);
-            return '';
-        }
-    }
-}
 function formatAIMessage(completion) {
-	const openAiMessage = completion.choices[0].message;
-	const anthropicMessage = {
-		id: completion.id,
-		type: "message",
-		role: openAiMessage.role,
-		content: [
-			{
-				type: "text",
-				text: openAiMessage.content || "",
-			},
-		],
-		model: completion.model,
-		stop_reason: (() => {
-			switch (completion.choices[0].finish_reason) {
-				case "stop":
-					return "end_turn";
-				case "length":
-					return "max_tokens";
-				case "tool_calls":
-					return "tool_use";
-				case "content_filter":
-				default:
-					return null;
-			}
-		})(),
-		stop_sequence: null,
-		usage: {
-			input_tokens: completion.usage?.prompt_tokens || 0,
-			output_tokens: completion.usage?.completion_tokens || 0,
-		},
-	};
+    const openAiMessage = completion.choices[0].message;
+    const anthropicMessage = {
+        id: completion.id,
+        type: "message",
+        role: openAiMessage.role,
+        content: [
+            {
+                type: "text",
+                text: openAiMessage.content || "",
+            },
+        ],
+        model: completion.model,
+        stop_reason: (() => {
+            switch (completion.choices[0].finish_reason) {
+                case "stop":
+                    return "end_turn";
+                case "length":
+                    return "max_tokens";
+                case "tool_calls":
+                    return "tool_use";
+                case "content_filter":
+                default:
+                    return null;
+            }
+        })(),
+        stop_sequence: null,
+        usage: {
+            input_tokens: completion.usage?.prompt_tokens || 0,
+            output_tokens: completion.usage?.completion_tokens || 0,
+        },
+    };
 
-	if (openAiMessage.tool_calls && openAiMessage.tool_calls.length > 0) {
-		anthropicMessage.content.push(
-			...openAiMessage.tool_calls.map((toolCall) => {
-				let parsedInput = {};
-				try {
-					parsedInput = JSON.parse(toolCall.function.arguments || "{}");
-				} catch (error) {
-					console.error("Failed to parse tool arguments:", error);
-				}
-				return {
-					type: "tool_use",
-					id: toolCall.id,
-					name: toolCall.function.name,
-					input: parsedInput,
-				};
-			})
-		);
-	}
-	return anthropicMessage;
- }
+    if (openAiMessage.tool_calls && openAiMessage.tool_calls.length > 0) {
+        anthropicMessage.content.push(
+            ...openAiMessage.tool_calls.map((toolCall) => {
+                let parsedInput = {};
+                try {
+                    parsedInput = JSON.parse(toolCall.function.arguments || "{}");
+                } catch (error) {
+                    console.error("Failed to parse tool arguments:", error);
+                }
+                return {
+                    type: "tool_use",
+                    id: toolCall.id,
+                    name: toolCall.function.name,
+                    input: parsedInput,
+                };
+            })
+        );
+    }
+    return anthropicMessage;
+}
 module.exports = {
     send_message_to_ui,
-    send_message_to_llm,
-    getInstructionsForAgent,
-    get_default_llm,
     ask_question,
-    executeCommand,
-    currentProjectPath,
-    sendNotification,
-    writeToFile,
-    readFile,
-    listFiles,
-    searchFiles,
-    listCodeDefinitionNames,
-    getProjectState,
     formatAIMessage
 }
