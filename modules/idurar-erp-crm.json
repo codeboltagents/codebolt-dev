@@ -1,0 +1,775 @@
+{
+  "CODE-OF-CONDUCT.md": "null",
+  "CONTRIBUTING.md": "null",
+  "INSTALLATION-INSTRUCTIONS.md": "null",
+  "LICENSE": "null",
+  "README.md": "null",
+  "SECURITY.md": "null",
+  "backend": {
+    "jsconfig.json": "null",
+    "package-lock.json": "null",
+    "package.json": "null",
+    "src": {
+      "app.js": "Express app setup with routes includes but full server setup inside server.js",
+      "controllers": {
+        "appControllers": {
+          "clientController": {
+            "index.js": "null",
+            "summary.js": "null"
+          },
+          "index.js": "null",
+          "invoiceController": {
+            "create.js": "null",
+            "index.js": "null",
+            "paginatedList.js": "null",
+            "read.js": "null",
+            "remove.js": "null",
+            "schemaValidate.js": "null",
+            "sendMail.js": "null",
+            "summary.js": "null",
+            "update.js": "null"
+          },
+          "paymentController": {
+            "create.js": "null",
+            "index.js": "null",
+            "remove.js": "null",
+            "sendMail.js": "null",
+            "summary.js": "null",
+            "update.js": "null"
+          },
+          "paymentModeController": {
+            "index.js": "null"
+          },
+          "quoteController": {
+            "convertQuoteToInvoice.js": "null",
+            "create.js": "null",
+            "index.js": "null",
+            "paginatedList.js": "null",
+            "read.js": "null",
+            "sendMail.js": "null",
+            "summary.js": "null",
+            "update.js": "null"
+          },
+          "taxesController": {
+            "index.js": "null"
+          }
+        },
+        "coreControllers": {
+          "adminAuth": {
+            "index.js": "null"
+          },
+          "adminController": {
+            "index.js": "null"
+          },
+          "settingController": {
+            "index.js": "null",
+            "listAll.js": "null",
+            "listBySettingKey.js": "null",
+            "readBySettingKey.js": "null",
+            "updateBySettingKey.js": "null",
+            "updateManySetting.js": "null"
+          },
+          "setup.js": "null"
+        },
+        "middlewaresControllers": {
+          "createAuthMiddleware": {
+            "authUser.js": "null",
+            "checkAndCorrectURL.js": "null",
+            "forgetPassword.js": "null",
+            "index.js": "null",
+            "isValidAuthToken.js": "null",
+            "login.js": "null",
+            "logout.js": "null",
+            "resetPassword.js": "null",
+            "sendMail.js": "null"
+          },
+          "createCRUDController": {
+            "create.js": "null",
+            "filter.js": "null",
+            "index.js": "null",
+            "listAll.js": "null",
+            "paginatedList.js": "null",
+            "read.js": "null",
+            "remove.js": "null",
+            "search.js": "null",
+            "summary.js": "null",
+            "update.js": "null"
+          },
+          "createUserController": {
+            "index.js": "null",
+            "read.js": "null",
+            "updatePassword.js": "null",
+            "updateProfile.js": "null",
+            "updateProfilePassword.js": "null"
+          }
+        },
+        "pdfController": {
+          "index.js": "null"
+        }
+      },
+      "emailTemplate": {
+        "SendEmailTemplate.js": "null",
+        "emailVerfication.js": "null"
+      },
+      "handlers": {
+        "downloadHandler": {
+          "downloadPdf.js": "null"
+        },
+        "errorHandlers.js": "null"
+      },
+      "helpers.js": "null",
+      "locale": {
+        "languages.js": "null",
+        "translation": {
+          "en_us.js": "null"
+        },
+        "useLanguage.js": "null"
+      },
+      "middlewares": {
+        "inventory": {
+          "generateUniqueNumber.js": "null",
+          "index.js": "null"
+        },
+        "serverData.js": "null",
+        "settings": {
+          "increaseBySettingKey.js": "null",
+          "index.js": "null",
+          "listAllSettings.js": "null",
+          "listBySettingKey.js": "null",
+          "loadSettings.js": "null",
+          "readBySettingKey.js": "null",
+          "updateBySettingKey.js": "null"
+        },
+        "uploadMiddleware": {
+          "DoSingleStorage.js": "null",
+          "LocalSingleStorage.js": "null",
+          "index.js": "null",
+          "singleStorageUpload.js": "null",
+          "utils": {
+            "LocalfileFilter.js": "null",
+            "fileFilterMiddleware.js": "null"
+          }
+        }
+      },
+      "models": {
+        "appModels": {
+          "Client.js": "null",
+          "Invoice.js": "null",
+          "Payment.js": "null",
+          "PaymentMode.js": "null",
+          "Quote.js": "null",
+          "Taxes.js": "null"
+        },
+        "coreModels": {
+          "Admin.js": "null",
+          "AdminPassword.js": "null",
+          "Setting.js": "null",
+          "Upload.js": "null"
+        },
+        "utils": {
+          "index.js": "null"
+        }
+      },
+      "pdf": {
+        "Invoice.pug": "null",
+        "Offer.pug": "null",
+        "Payment.pug": "null",
+        "Quote.pug": "null"
+      },
+      "public": {
+        "uploads": {
+          "admin": {
+            "idurar-icon-png-80-i1kez.png": "null"
+          },
+          "setting": {
+            "company-logo.png": "null"
+          }
+        }
+      },
+      "routes": {
+        "appRoutes": {
+          "appApi.js": "null"
+        },
+        "coreRoutes": {
+          "coreApi.js": "null",
+          "coreAuth.js": "null",
+          "coreDownloadRouter.js": "null",
+          "corePublicRouter.js": "null"
+        }
+      },
+      "server.js": "including app.js and setup mongodb using mongoose and setup environmental using dotenv running application in port",
+      "settings": {
+        "index.js": "null",
+        "useAppSettings.js": "null",
+        "useDate.js": "null",
+        "useMoney.js": "null"
+      },
+      "setup": {
+        "defaultSettings": {
+          "appSettings.json": "null",
+          "clientSettings.json": "null",
+          "companySettings.json": "null",
+          "financeSettings.json": "null",
+          "invoiceSettings.json": "null",
+          "moneyFormatSettings.json": "null",
+          "quoteSettings.json": "null"
+        },
+        "reset.js": "null",
+        "setup.js": "null",
+        "setupConfig.json": "null"
+      },
+      "utils": {
+        "countryList.js": "null",
+        "currency.js": "null",
+        "currencyList.js": "null"
+      }
+    }
+  },
+  "doc": {
+    "README.fr.md": "null",
+    "README.sp.md": "null"
+  },
+  "features": {
+    "ar_eg_ملف_مفتوح_المصدر_مجاني_للبرمجيات_ERP_CRM.md": "null",
+    "bg_bg_свободен_отворен_източник_erp_crm_софтуер.md": "null",
+    "bn_bd_ফ্রি_ওপেন_সোর্স_ইআরপি_সিআরএম_সফটওয়্যার.md": "null",
+    "ca_es_software_erp_crm_de_codi_obert_gratuït.md": "null",
+    "cs_cz_volný_otevřený_zdroj_erp_crm_software.md": "null",
+    "da_dk_gratis_åben_kilde_erp_crm_software.md": "null",
+    "de_de_frei_offene_quelle_erp_crm_software.md": "null",
+    "el_gr_ελεύθερο_ανοικτο_πηγαίο_erp_crm_λογισμικό.md": "null",
+    "en_us_free_open_source_erp_crm_software.md": "null",
+    "es_es_software_erp_crm_de_código_abierto_y_gratis.md": "null",
+    "et_ee_tasuta_avatud_lähtekoodiga_erp_crm_tarkvara.md": "null",
+    "fa_ir_رایگان_منبع_باز_نرم‌افزار_مدیریت_مالی_و_ارتباطات.md": "null",
+    "fi_fi_ilmainen_avoin_lähdekoodi_erp_crm_ohjelmisto.md": "null",
+    "fr_fr_gratuit_logiciel_erp_crm_open_source.md": "null",
+    "hi_in_मुफ्त_खुला_स्रोत_ईआरपी_सीआरएम_सॉफ़्टवेयर.md": "null",
+    "hr_hr_besplatni_otvoreni_izvor_erp_crm_softver.md": "null",
+    "hu_hu_ingyenes_nyílt_forráskódú_erp_crm_szoftver.md": "null",
+    "id_id_perangkat_lunak_erp_crm_sumber_terbuka_gratis.md": "null",
+    "it_it_software_erp_crm_open_source_gratuito.md": "null",
+    "ja_jp_フリーオープンソースERP CRMソフトウェア.md": "null",
+    "ko_kr_자유_오픈_소스_ERP_CRM_소프트웨어.md": "null",
+    "lt_lt_nemokamas_atviras_kodo_erp_crm_programinė_įranga.md": "null",
+    "lv_lv_bezmaksas_atvērtā_koda_erp_crm_programmatūra.md": "null",
+    "mk_mk_фрее_опен_сорсе_ерп_црм_софтвер.md": "null",
+    "ms_my_fail_terbuka_sumber_erp_crm_perisian.md": "null",
+    "nb_no_gratis_åpen_kilde_erp_crm_programvare.md": "null",
+    "nl_nl_vrije_open_source_erp_crm_software.md": "null",
+    "pl_pl_bezpłatne_otwarte_źródło_erp_crm_oprogramowanie.md": "null",
+    "pt_br_software_de_erp_e_crm_de_código_aberto_gratuito.md": "null",
+    "pt_pt_software_de_erp_crm_de_código_aberto_gratuito.md": "null",
+    "ro_ro_software_erp_crm_open_source_gratuit.md": "null",
+    "ru_ru_бесплатное_открытое_программное_обеспечение_erp_crm.md": "null",
+    "sk_sk_zdarma_otvorene_zdrojove_erp_crm_software.md": "null",
+    "sl_si_brezplačni_odprtokodni_erp_crm_programski_oprema.md": "null",
+    "sr_rs_besplatni_otvoreni_izvor_erp_crm_softver.md": "null",
+    "sv_se_fri_öppen_källkods_erp_crm_programvara.md": "null",
+    "th_th_ฟรี_โปรแกรม_ตัวจัดการแหล่งข้อมูลโปรแกรม_ERP_CRM.md": "null",
+    "tr_tr_ücretsiz_açık_kaynak_erp_crm_yazılımı.md": "null",
+    "uk_ua_безкоштовне_відкрите_джерело_erp_crm_програмне_забезпечення.md": "null",
+    "ur_pk_مفت_کھولیں_سورس_erp_crm_سافٹ ویئر.md": "null",
+    "vi_vn_chương_trình_quản_lý_doanh_nghiệp_crm_nguồn_mở_miễn_phí.md": "null",
+    "zh_cn_免费开源ERP CRM软件.md": "null"
+  },
+  "frontend": {
+    "README.md": "null",
+    "index.html": "null",
+    "jsconfig.json": "null",
+    "package-lock.json": "null",
+    "package.json": "null",
+    "public": {
+      "robots.txt": "null"
+    },
+    "rollup.config.js": "null",
+    "src": {
+      "RootApp.jsx": "null",
+      "apps": {
+        "ErpApp.jsx": "null",
+        "Header": {
+          "HeaderContainer.jsx": "Header section showing current admin name   profile setting app setting and logout button ",
+          "UpgradeButton.jsx": "Showing upgade button "
+        },
+        "IdurarOs.jsx": "including HeaderContainer and AppRouter here  ",
+        "Navigation": {
+          "NavigationContainer.jsx": "Left navigation item addeded here like dashboard,customer,invoice,quote,payment,paymentMode,taxes,generalSettings,about"
+        }
+      },
+      "auth": {
+        "auth.service.js": "Auth service is having login,register,verify,resetPassword,logout these function  axios to use backend api ",
+        "index.js": "exporting auth service export * from './auth.service"
+      },
+      "components": {
+        "AutoCompleteAsync": {
+          "index.jsx": "this component  AutoCompleteAsync used across application"
+        },
+        "CollapseBox": {
+          "index.jsx": "this component used for CollapseBox u"
+        },
+        "CreateForm": {
+          "index.jsx": "CreateForm component have CreateForm function that accept these parmaters ({ config, formElements, withUpload = false }"
+        },
+        "CrudModal": {
+          "index.jsx": "contains model to show  confirmation"
+        },
+        "DataTable": {
+          "DataTable.jsx": "contains dynamic  DataTable  used acrrss application "
+        },
+        "DeleteModal": {
+          "index.jsx": "contains DeleteModal to show delete confirmation"
+        },
+        "IconMenu": {
+          "index.jsx": "contains IconMenu  component  return icon based on name"
+        },
+        "Loading": {
+          "index.jsx": "Loading component"
+        },
+        "MoneyInputFormItem": {
+          "index.jsx": "null"
+        },
+        "MultiStepSelectAsync": {
+          "index.jsx": "null"
+        },
+        "NotFound": {
+          "index.jsx": "null"
+        },
+        "Notification": {
+          "index.jsx": "null"
+        },
+        "PageLoader": {
+          "index.jsx": "null"
+        },
+        "ReadItem": {
+          "index.jsx": "null"
+        },
+        "SearchItem": {
+          "index.jsx": "null"
+        },
+        "SelectAsync": {
+          "index.jsx": "null"
+        },
+        "SelectTag": {
+          "index.jsx": "null"
+        },
+        "SidePanel": {
+          "index.jsx": "null"
+        },
+        "TabsContent": {
+          "TabsContent.jsx": "null"
+        },
+        "Tag": {
+          "index.jsx": "null"
+        },
+        "UpdateForm": {
+          "index.jsx": "null"
+        },
+        "Visibility": {
+          "index.jsx": "null"
+        },
+        "outsideClick.js": {
+          "demo.js": "null",
+          "index.js": "null"
+        }
+      },
+      "config": {
+        "serverApiConfig.js": "null"
+      },
+      "context": {
+        "adavancedCrud": {
+          "actions.jsx": "null",
+          "index.jsx": "null",
+          "reducer.jsx": "null",
+          "selectors.jsx": "null",
+          "types.jsx": "null"
+        },
+        "appContext": {
+          "actions.jsx": "null",
+          "index.jsx": "null",
+          "reducer.jsx": "null",
+          "types.jsx": "null"
+        },
+        "crud": {
+          "actions.jsx": "null",
+          "index.jsx": "null",
+          "reducer.jsx": "null",
+          "selectors.jsx": "null",
+          "types.jsx": "null"
+        },
+        "erp": {
+          "actions.jsx": "null",
+          "index.jsx": "null",
+          "reducer.jsx": "null",
+          "selectors.jsx": "null",
+          "types.jsx": "null"
+        },
+        "profileContext": {
+          "actions.jsx": "null",
+          "index.jsx": "null",
+          "reducer.jsx": "null",
+          "selectors.jsx": "null",
+          "types.jsx": "null"
+        }
+      },
+      "favicon.ico": "null",
+      "forms": {
+        "AdminForm.jsx": "null",
+        "AdvancedSettingsForm.jsx": "null",
+        "CurrencyForm.jsx": "null",
+        "CustomerForm.jsx": "null",
+        "DynamicForm": {
+          "index.jsx": "null"
+        },
+        "EmployeeForm.jsx": "null",
+        "ForgetPasswordForm.jsx": "null",
+        "InventoryForm.jsx": "null",
+        "LeadForm.jsx": "null",
+        "LoginForm.jsx": "null",
+        "OrderForm.jsx": "null",
+        "PaymentForm.jsx": "null",
+        "PaymentModeForm.jsx": "null",
+        "RegisterForm.jsx": "null",
+        "ResetPasswordForm.jsx": "null",
+        "TaxForm.jsx": "null",
+        "UpdateEmail.jsx": "null"
+      },
+      "hooks": {
+        "useDebounce.jsx": "null",
+        "useFetch.jsx": "null",
+        "useMail.jsx": "null",
+        "useNetwork.jsx": "null",
+        "useOnFetch.jsx": "null",
+        "useResponsive.jsx": "null",
+        "useTimeoutFn.jsx": "null"
+      },
+      "layout": {
+        "AuthLayout": {
+          "index.jsx": "null"
+        },
+        "CrudLayout": {
+          "index.jsx": "null"
+        },
+        "DashboardLayout": {
+          "index.jsx": "null"
+        },
+        "DefaultLayout": {
+          "index.jsx": "null"
+        },
+        "ErpLayout": {
+          "index.jsx": "null"
+        },
+        "Footer": {
+          "index.jsx": "null"
+        },
+        "ProfileLayout": {
+          "index.jsx": "null"
+        },
+        "SettingsLayout": {
+          "index.jsx": "null"
+        },
+        "index.jsx": "null"
+      },
+      "locale": {
+        "Localization.jsx": "null",
+        "antdLocale.js": "null",
+        "coreTranslation.js": "null",
+        "translation": {
+          "en_us.js": "null",
+          "otherTranslation.js": "null",
+          "translation.js": "null"
+        },
+        "useLanguage.jsx": "null"
+      },
+      "logo-icon.svg": "null",
+      "main.jsx": "null",
+      "modules": {
+        "AuthModule": {
+          "SideContent.jsx": "null",
+          "index.jsx": "null"
+        },
+        "CrudModule": {
+          "CrudModule.jsx": "null"
+        },
+        "DashboardModule": {
+          "components": {
+            "CustomerPreviewCard.jsx": "null",
+            "PreviewCard.jsx": "null",
+            "RecentTable": {
+              "index.jsx": "null"
+            },
+            "SummaryCard.jsx": "null"
+          },
+          "index.jsx": "null"
+        },
+        "ErpPanelModule": {
+          "CreateItem.jsx": "null",
+          "DataTable.jsx": "null",
+          "DeleteItem.jsx": "null",
+          "ItemRow.jsx": "null",
+          "ReadItem.jsx": "null",
+          "SearchItem.jsx": "null",
+          "UpdateItem.jsx": "null",
+          "index.jsx": "null"
+        },
+        "InvoiceModule": {
+          "CreateInvoiceModule": {
+            "index.jsx": "null"
+          },
+          "Forms": {
+            "InvoiceForm.jsx": "null"
+          },
+          "InvoiceDataTableModule": {
+            "index.jsx": "null"
+          },
+          "ReadInvoiceModule": {
+            "index.jsx": "null"
+          },
+          "RecordPaymentModule": {
+            "components": {
+              "Payment.jsx": "null",
+              "RecordPayment.jsx": "null"
+            },
+            "index.jsx": "null"
+          },
+          "UpdateInvoiceModule": {
+            "index.jsx": "null"
+          }
+        },
+        "PaymentModule": {
+          "PaymentDataTableModule": {
+            "index.jsx": "null"
+          },
+          "ReadPaymentModule": {
+            "components": {
+              "ReadItem.jsx": "null"
+            },
+            "index.jsx": "null"
+          },
+          "UpdatePaymentModule": {
+            "components": {
+              "Payment.jsx": "null",
+              "UpdatePayment.jsx": "null"
+            },
+            "index.jsx": "null"
+          }
+        },
+        "ProfileModule": {
+          "components": {
+            "AdminInfo.jsx": "null",
+            "PasswordModal.jsx": "null",
+            "Profile.jsx": "null",
+            "ProfileAdminForm.jsx": "null",
+            "UpdateAdmin.jsx": "null",
+            "UploadImg.jsx": "null"
+          },
+          "index.jsx": "null"
+        },
+        "QuoteModule": {
+          "CreateQuoteModule": {
+            "index.jsx": "null"
+          },
+          "Forms": {
+            "QuoteForm.jsx": "null"
+          },
+          "QuoteDataTableModule": {
+            "index.jsx": "null"
+          },
+          "ReadQuoteModule": {
+            "index.jsx": "null"
+          },
+          "UpdateQuoteModule": {
+            "index.jsx": "null"
+          }
+        },
+        "SettingModule": {
+          "CompanyLogoSettingsModule": {
+            "forms": {
+              "AppSettingForm.jsx": "null"
+            },
+            "index.jsx": "null"
+          },
+          "CompanySettingsModule": {
+            "SettingsForm.jsx": "null",
+            "index.jsx": "null"
+          },
+          "FinanceSettingsModule": {
+            "SettingsForm.jsx": "null",
+            "index.jsx": "null"
+          },
+          "GeneralSettingsModule": {
+            "forms": {
+              "GeneralSettingForm.jsx": "null"
+            },
+            "index.jsx": "null"
+          },
+          "MoneyFormatSettingsModule": {
+            "SettingsForm.jsx": "null",
+            "index.jsx": "null"
+          },
+          "components": {
+            "SetingsSection.jsx": "null",
+            "UpdateSettingForm.jsx": "null",
+            "UpdateSettingModule.jsx": "null"
+          }
+        }
+      },
+      "pages": {
+        "About.jsx": "About page",
+        "Customer": {
+          "config.js": "Configuration for customer page, including fields like name, country, phone, and email.",
+          "index.jsx": "Utilizes config.js to build a dynamic form for adding new customers."
+        },
+        "Dashboard.jsx": "Loads the Dashboard module from DashboardModule/index.jsx.",
+        "ForgetPassword.jsx": "Page for password recovery.",
+        "Invoice": {
+          "InvoiceCreate.jsx": "Loads CreateInvoiceModule with specific configurations.",
+          "InvoiceRead.jsx": "Loads ReadInvoiceModule with specific configurations.",
+          "InvoiceRecordPayment.jsx": "Loads RecordPaymentModule with specific configurations.",
+          "InvoiceUpdate.jsx": "Loads UpdateInvoiceModule with specific configurations.",
+          "index.jsx": "Displays a table of invoices with columns such as Number, Client, Date, Expiry Date, Total, Paid, Status, and Payment."
+        },
+        "Login.jsx": "User login page.",
+        "Logout.jsx": "User logout page.",
+        "NotFound.jsx": "Page displayed when a route is not found.",
+        "Payment": {
+          "PaymentRead.jsx": "Loads ReadPaymentModule with specific configurations.",
+          "PaymentUpdate.jsx": "Loads UpdatePaymentModule with specific configurations.",
+          "index.jsx": "Displays a table of payments with columns such as Number, Client, Amount, Date, Year, and Payment Mode."
+        },
+        "PaymentMode": {
+          "index.jsx": "Displays a table of payment modes with columns such as Payment Mode, Description, Default, Enabled, and includes a search textbox, refresh button, and add payment mode button."
+        },
+        "Profile.jsx": "Loads the Profile Module.",
+        "Quote": {
+          "QuoteCreate.jsx": "Loads CreateQuoteModule with specific configurations.",
+          "QuoteRead.jsx": "Loads ReadQuoteModule with specific configurations.",
+          "QuoteUpdate.jsx": "Loads UpdateQuoteModule with specific configurations.",
+          "index.jsx": "Displays a table of quotes with columns such as Client, Date, Expiry Date, Sub Total, Total, and Status, using QuoteDataTableModule."
+        },
+        "ResetPassword.jsx": "Form for resetting passwords.",
+        "Settings": {
+          "CompanyLogoSettings.jsx": "Loads CompanyLogoSettingsModule with specific configurations.",
+          "CompanySettings.jsx": "Loads CompanySettingsModule with specific configurations.",
+          "FinanceSettings.jsx": "Loads FinanceSettingsModule with specific configurations.",
+          "GeneralSettingsModule.jsx": "Loads GeneralSettingsModule with specific configurations.",
+          "MoneyFormatSettings.jsx": "Loads MoneyFormatSettingsModule with specific configurations.",
+          "Settings.jsx": "TabsContent to load various settings modules including CompanyLogoSettings, CompanySettings, FinanceSettings, GeneralSettingsModule, and MoneyFormatSettings."
+        },
+        "Taxes": {
+          "index.jsx": "Displays a table of quotes with columns such as Name Value Default Enabled"
+        }
+      },
+      "redux": {
+        "adavancedCrud": {
+          "actions.js": "null",
+          "index.js": "null",
+          "reducer.js": "null",
+          "selectors.js": "null",
+          "types.js": "null"
+        },
+        "auth": {
+          "actions.js": "null",
+          "index.js": "null",
+          "reducer.js": "null",
+          "selectors.js": "null",
+          "types.js": "null"
+        },
+        "crud": {
+          "actions.js": "null",
+          "index.js": "null",
+          "reducer.js": "null",
+          "selectors.js": "null",
+          "types.js": "null"
+        },
+        "erp": {
+          "actions.js": "null",
+          "index.js": "null",
+          "reducer.js": "null",
+          "selectors.js": "null",
+          "types.js": "null"
+        },
+        "rootReducer.js": "null",
+        "settings": {
+          "actions.js": "null",
+          "index.js": "null",
+          "reducer.js": "null",
+          "selectors.js": "null",
+          "types.js": "null"
+        },
+        "store.js": "null",
+        "storePersist.js": "null"
+      },
+      "request": {
+        "checkImage.js": "null",
+        "codeMessage.js": "null",
+        "errorHandler.js": "null",
+        "index.js": "null",
+        "request.js": "null",
+        "successHandler.js": "null"
+      },
+      "router": {
+        "AppRouter.jsx": "null",
+        "AuthRouter.jsx": "null",
+        "routes.jsx": "null"
+      },
+      "settings": {
+        "index.jsx": "null",
+        "useDate.jsx": "null",
+        "useMoney.jsx": "null"
+      },
+      "style": {
+        "app.css": "null",
+        "images": {
+          "checklist.svg": "null",
+          "fitbit-gray.svg": "null",
+          "flow-xo-gray.svg": "null",
+          "gitlab-gray.svg": "null",
+          "idurar-crm-erp.svg": "null",
+          "layar-gray.svg": "null",
+          "logo-icon.png": "null",
+          "logo-icon.svg": "null",
+          "logo-menu.png": "null",
+          "logo-text.png": "null",
+          "logo-text.svg": "null",
+          "logo.png": "null",
+          "logo.svg": "null",
+          "logo1.png": "null",
+          "logo2.png": "null",
+          "logo3.png": "null",
+          "logo4.png": "null",
+          "photo.png": "null"
+        },
+        "partials": {
+          "auth.css": "null",
+          "collapseBox.css": "null",
+          "core.css": "null",
+          "customAntd.css": "null",
+          "erp.css": "null",
+          "header.css": "null",
+          "layout.css": "null",
+          "navigation.css": "null",
+          "rest.css": "null",
+          "sidePanel.css": "null",
+          "transition.css": "null"
+        }
+      },
+      "utils": {
+        "calculate.js": "null",
+        "color.js": "null",
+        "countryList.js": "null",
+        "currencyList.js": "null",
+        "dataStructure.jsx": "null",
+        "helpers.js": "null",
+        "isBrowser.js": "null",
+        "statusTagColor.js": "null",
+        "tagColor.js": "null",
+        "valueType.js": "null"
+      }
+    },
+    "temp.env": "null",
+    "vite.config.js": "null"
+  },
+  "idurar-crm-erp.svg": "null",
+  "image.png": "null",
+  "package-lock.json": "null"
+}

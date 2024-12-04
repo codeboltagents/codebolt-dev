@@ -1,15 +1,46 @@
 {
-  "name": "codebot-dev-updated",
+  "name": "codebolt-dev",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "watch:esbuild": "node esbuild.js --watch",
+    "build": "webpack"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@codebolt/codeboltjs": "^1.1.68"
+    "@anthropic-ai/sdk": "^0.27.3",
+    "@codebolt/codeboltjs": "^1.1.68",
+    "@vscode/ripgrep": "^1.15.9",
+    "axios": "^1.7.7",
+    "babel-loader": "^9.2.1",
+    "bufferutil": "^4.0.8",
+    "copy-webpack-plugin": "^12.0.2",
+    "default-shell": "^2.2.0",
+    "delay": "^6.0.0",
+    "diff": "^7.0.0",
+    "esbuild": "^0.23.1",
+    "globby": "^14.0.2",
+    "mammoth": "^1.8.0",
+    "openai": "^4.63.0",
+    "os-name": "^6.0.0",
+    "p-wait-for": "^5.0.2",
+    "path-browserify": "^1.0.1",
+    "pdf-parse": "^1.1.1",
+    "serialize-error": "^11.0.3",
+    "tree-sitter-wasms": "^0.1.12",
+    "utf-8-validate": "^6.0.5",
+    "vscode": "^1.1.37",
+    "vscode-ripgrep-utils": "^0.6.0",
+    "web-tree-sitter": "^0.23.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.0.0",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
   }
 }

@@ -39,9 +39,9 @@ class CodeboltDev {
         question
     ) {
         // console.log(type, question)
-        // If this CodeboltDev instance was aborted by the provider, then the only thing keeping us alive is a promise still running in the background, in which case we don't want to send its result to the webview as it is attached to a new instance of CodeboltDev now. So we can safely ignore the result of any active promises, and this class will be deallocated. (Although we set CodeboltDev = undefined in provider, that simply removes the reference to this instance, but the instance is still alive until this promise resolves or rejects.)
+        // If this ClaudeDev instance was aborted by the provider, then the only thing keeping us alive is a promise still running in the background, in which case we don't want to send its result to the webview as it is attached to a new instance of ClaudeDev now. So we can safely ignore the result of any active promises, and this class will be deallocated. (Although we set claudeDev = undefined in provider, that simply removes the reference to this instance, but the instance is still alive until this promise resolves or rejects.)
         if (this.abort) {
-            throw new Error("CodeboltDev instance aborted")
+            throw new Error("ClaudeDev instance aborted")
         }
         this.askResponse = undefined
         this.askResponseText = undefined
@@ -79,7 +79,7 @@ class CodeboltDev {
 
     async say(type, text, images, isUserMessage = false) {
         if (this.abort) {
-            throw new Error("CodeboltDev instance aborted")
+            throw new Error("ClaudeDev instance aborted")
         }
         const sayTs = Date.now()
         this.lastMessageTs = sayTs
@@ -296,7 +296,7 @@ ${this.customInstructions.trim()}
         initialMessage = false
     ) {
         if (this.abort) {
-            throw new Error("CodeboltDev instance aborted")
+            throw new Error("ClaudeDev instance aborted")
         }
 
         if (this.consecutiveMistakeCount >= 3) {

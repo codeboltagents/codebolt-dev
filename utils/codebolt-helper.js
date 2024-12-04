@@ -46,7 +46,7 @@ async function send_message_to_ui(message, type) {
                     agentMessage = `Codebolt searched this directory for <code>{tool.regex}</code>:`;
                     break;
                 default:
-                    agentMessage = message
+                    return null
                     break;
             }
 
@@ -59,13 +59,9 @@ async function send_message_to_ui(message, type) {
     await send_message(agentMessage, paylod)
 }
 async function ask_question(question, type) {
-    let buttons = [{
-        text: "Yes",
-        value: "yes"
-    }, {
-        text: "No",
-        value: "no"
-    }];
+    console.log("question is",question,type)
+    try {
+        let buttons = [];
     let paylod = {
         type: "",
         path: "",
@@ -74,7 +70,7 @@ async function ask_question(question, type) {
     let agentMessage = ""
     function setPrimaryButtonText(text) {
         if (text === undefined) {
-            buttons.splice(0, 1); // Remove the second button from the array
+           
         }
         else {
             buttons[0].text = text
@@ -84,7 +80,7 @@ async function ask_question(question, type) {
     }
     function setSecondaryButtonText(text) {
         if (text === undefined) {
-            buttons.splice(1, 1); // Remove the second button from the array
+           
         }
         else {
             buttons[1].value = text
@@ -233,8 +229,14 @@ async function ask_question(question, type) {
     }
     // console.log("sending message ", question, buttons)
     const response = await codebolt.chat.sendConfirmationRequest(question, buttons, true);
-    // console.log(message.userMessage);
+    
+    console.log("codebolt confirmation response", response);
     return response
+    } catch (error) {
+        
+    }
+  
+    
 
 }
 async function send_message(message, paylod) {
@@ -245,7 +247,7 @@ async function send_message(message, paylod) {
 
 async function readFile(filePath) {
     try {
-        let = { success, result } = await codebolt.fs.readFile(filePath);
+        let { success, result } = await codebolt.fs.readFile(filePath);
         console.log("response", success, result)
         return [success, result]
     } catch (error) {
@@ -256,7 +258,7 @@ async function readFile(filePath) {
 
 async function writeToFile(filePath, content) {
     try {
-        let = { success, result } = await codebolt.fs.writeToFile(filePath, content);
+        let { success, result } = await codebolt.fs.writeToFile(filePath, content);
         console.log("response", success, result)
         return [success, result]
 
@@ -268,7 +270,7 @@ async function writeToFile(filePath, content) {
 
 async function listFiles(directoryPath, recursive = false) {
     try {
-        let = { success, result } = await codebolt.fs.listFile(directoryPath, recursive);
+      let { success, result } = await codebolt.fs.listFile(directoryPath, recursive);
         return [success, result]
     } catch (error) {
         console.error(`Failed to list files in directory ${directoryPath}:`, error);
@@ -278,7 +280,7 @@ async function listFiles(directoryPath, recursive = false) {
 
 async function listCodeDefinitionNames(filePath) {
     try {
-        let = { success, result } = await codebolt.fs.listCodeDefinitionNames(filePath);
+        let  { success, result } = await codebolt.fs.listCodeDefinitionNames(filePath);
         return [success, result]
     } catch (error) {
         console.error(`Failed to list code definitions in file ${filePath}:`, error);
@@ -288,7 +290,7 @@ async function listCodeDefinitionNames(filePath) {
 
 async function searchFiles(directoryPath, regex, filePattern) {
     try {
-        let = { success, result } = await codebolt.fs.searchFiles(directoryPath, regex, filePattern);
+        let { success, result } =  await codebolt.fs.searchFiles(directoryPath, regex, filePattern);
         return [success, result]
     } catch (error) {
         console.error(`Failed to search files in directory ${directoryPath}:`, error);
@@ -304,8 +306,8 @@ async function sendNotification(type, message) {
 }
 
 
-async function executeCommand(command, returnEmptyStringOnSuccess) {
-    let = { success, result } = await codebolt.terminal.executeCommand(command, returnEmptyStringOnSuccess);
+async function executeCommand(command,returnEmptyStringOnSuccess) {
+    let  { success, result } =  await codebolt.terminal.executeCommand(command,returnEmptyStringOnSuccess);
     return [success, result]
 }
 
@@ -315,7 +317,6 @@ async function executeCommand(command, returnEmptyStringOnSuccess) {
  * @param {string} model - The LLM model to use (e.g., GPT-4, Codebolt-3).
  */
 async function send_message_to_llm(prompt) {
-    
     let { completion } = await codebolt.llm.inference(prompt);
     return completion
 }
@@ -355,15 +356,6 @@ async function currentProjectPath() {
 
     }
 }
-
-async function getProjectState() {
-    try {
-        let { state } = await codebolt.cbstate.getApplicationState();
-        return state.projectState.state;
-    } catch (error) {
-        return {};
-    }
-}
 async function getInstructionsForAgent() {
 
     if (projectPath) {
@@ -387,59 +379,6 @@ async function getInstructionsForAgent() {
         }
     }
 }
-function formatAIMessage(completion) {
-	const openAiMessage = completion.choices[0].message;
-	const anthropicMessage = {
-		id: completion.id,
-		type: "message",
-		role: openAiMessage.role,
-		content: [
-			{
-				type: "text",
-				text: openAiMessage.content || "",
-			},
-		],
-		model: completion.model,
-		stop_reason: (() => {
-			switch (completion.choices[0].finish_reason) {
-				case "stop":
-					return "end_turn";
-				case "length":
-					return "max_tokens";
-				case "tool_calls":
-					return "tool_use";
-				case "content_filter":
-				default:
-					return null;
-			}
-		})(),
-		stop_sequence: null,
-		usage: {
-			input_tokens: completion.usage?.prompt_tokens || 0,
-			output_tokens: completion.usage?.completion_tokens || 0,
-		},
-	};
-
-	if (openAiMessage.tool_calls && openAiMessage.tool_calls.length > 0) {
-		anthropicMessage.content.push(
-			...openAiMessage.tool_calls.map((toolCall) => {
-				let parsedInput = {};
-				try {
-					parsedInput = JSON.parse(toolCall.function.arguments || "{}");
-				} catch (error) {
-					console.error("Failed to parse tool arguments:", error);
-				}
-				return {
-					type: "tool_use",
-					id: toolCall.id,
-					name: toolCall.function.name,
-					input: parsedInput,
-				};
-			})
-		);
-	}
-	return anthropicMessage;
- }
 module.exports = {
     send_message_to_ui,
     send_message_to_llm,
@@ -453,7 +392,5 @@ module.exports = {
     readFile,
     listFiles,
     searchFiles,
-    listCodeDefinitionNames,
-    getProjectState,
-    formatAIMessage
+    listCodeDefinitionNames
 }
