@@ -1,15 +1,15 @@
-const codebolt = require('@codebolt/codeboltjs').default
+import codebolt from '@codebolt/codeboltjs';
 let projectPath;
-const fs = require('fs').promises;
-const path = require('path');
+import { promises as fs } from 'fs';
+import path from 'path';
 /**
  * Sends a message to the user interface.
  * @param {string} message - The message to be sent to the UI.
  */
 const COMMAND_OUTPUT_STRING = "Output:"
-async function send_message_to_ui(message, type) {
+export async function send_message_to_ui(message, type) {
     await codebolt.waitForConnection();
-    let paylod = {};
+    let paylod:any = {};
     let agentMessage;
     switch (type) {
         case "tool":
@@ -56,15 +56,15 @@ async function send_message_to_ui(message, type) {
 
     await codebolt.chat.sendMessage(agentMessage, paylod)
 }
-async function ask_question(question, type) {
-    let buttons = [{
+export async function ask_question(question, type) {
+    let buttons:any = [{
         text: "Yes",
         value: "yes"
     }, {
         text: "No",
         value: "no"
     }];
-    let paylod = {
+    let paylod:any = {
         type: "",
         path: "",
         content: ""
@@ -235,8 +235,7 @@ async function ask_question(question, type) {
     return response
 
 }
-
-function formatAIMessage(completion) {
+export function formatAIMessage(completion) {
     const openAiMessage = completion.choices[0].message;
     const anthropicMessage = {
         id: completion.id,
@@ -289,8 +288,6 @@ function formatAIMessage(completion) {
     }
     return anthropicMessage;
 }
-module.exports = {
-    send_message_to_ui,
-    ask_question,
-    formatAIMessage
-}
+
+
+

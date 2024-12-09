@@ -3,7 +3,7 @@ const fs = require("fs/promises");
 const os = require("os");
 
 
-const getSystemPrompt = async (cwd) => {
+export const SYSTEM_PROMPT = async (cwd:string) => {
     return `You are Codebolt Dev, a highly skilled software developer with extensive knowledge in many programming languages, frameworks, design patterns, and best practices.
 
 ====
@@ -65,7 +65,7 @@ Home Directory: ${os.homedir()}
 Current Working Directory: ${cwd}
 `;
 }
-function getTools(cwd) {
+export const getTools=()=> {
     return [
         {
             type: "function",
@@ -227,10 +227,8 @@ function getTools(cwd) {
     ;
 }
 
-module.exports = {
-    getSystemPrompt,
-    getTools
-}
+
+
 
 
 
