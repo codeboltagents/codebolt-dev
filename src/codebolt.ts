@@ -3,8 +3,8 @@ import * as path from "path"
 import fs from "fs"
 import { findLast, findLastIndex, formatContentBlockToMarkdown } from "./utils/array-helpers"
 import codebolt from '@codebolt/codeboltjs';
-import { getTools, SYSTEM_PROMPT } from "./prompts/prompt"
-import { ask_question, send_message_to_ui } from "./utils/codebolt-helper"
+import { getTools, SYSTEM_PROMPT } from "./prompt"
+import { ask_question, send_message_to_ui } from "./helper"
 
 let cwd = "";
 
@@ -435,18 +435,7 @@ export class CodeboltDev {
 
 	// Formatting responses to Claude
 
-	private formatImagesIntoBlocks(images?: string[]) {
-		return images
-			? images.map((dataUrl) => {
-				const [rest, base64] = dataUrl.split(",")
-				const mimeType = rest.split(":")[1].split(";")[0]
-				return {
-					type: "image",
-					source: { type: "base64", media_type: mimeType, data: base64 },
-				} as any
-			})
-			: []
-	}
+
 
 	private formatToolResponseWithImages(text: string, images?: string[]): ToolResponse {
 		if (images && images.length > 0) {
