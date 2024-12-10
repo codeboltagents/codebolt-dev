@@ -2,6 +2,7 @@ import codebolt from '@codebolt/codeboltjs';
 let projectPath;
 import { promises as fs } from 'fs';
 import path from 'path';
+import { cwd } from 'process';
 /**
  * Sends a message to the user interface.
  * @param {string} message - The message to be sent to the UI.
@@ -288,6 +289,135 @@ export function formatAIMessage(completion) {
     }
     return anthropicMessage;
 }
+export async function getEnvironmentDetails(includeFileDetails = false) {
+    let details = ""
+    // It could be useful for claude to know if the user went from one or no file to another between messages, so we always include this context
+    details += "\n\n# Codebolt Visible Files"
+    const visibleFiles = []//vscode.window.visibleTextEditors
+        ?.map((editor) => editor.document?.uri?.fsPath)
+        .filter(Boolean)
+        .map((absolutePath) => path.relative(cwd, absolutePath))
+        .join("\n")
+    if (visibleFiles) {
+        details += `\n${visibleFiles}`
+    } else {
+        details += "\n(No visible files)"
+    }
+    details += "\n\n# Codebolt Open Tabs"
+    const openTabs = [] //vscode.window.tabGroups.all
+        .flatMap((group) => group.tabs)
+        .map((tab) => (tab.input)?.uri?.fsPath)
+        .filter(Boolean)
+        .map((absolutePath) => path.relative(cwd, absolutePath))
+        .join("\n")
+    if (openTabs) {
+        details += `\n${openTabs}`
+    } else {
+        details += "\n(No open tabs)"
+    }
+
+    // this.didEditFile = false // reset, this lets us know when to wait for saved files to update terminals
+
+    if (includeFileDetails) {
+        const isDesktop = cwd === path.join(os.homedir(), "Desktop")
+        //@ts-ignore
+        let { success, result } = await codebolt.fs.listFile(cwd, !isDesktop)
+        details += `\n\n# Current Working Directory (${cwd}) Files\n${result}${isDesktop
+            ? "\n(Note: Only top-level contents shown for Desktop by default. Use list_files to explore further if necessary.)"
+            : ""
+            }`
+    }
+
+    return `<environment_details>\n${details.trim()}\n</environment_details>`
+}
+
+export async function executeTool(toolName, toolInput: any): Promise<[boolean, ToolResponse]> {
+    switch (toolName) {
+        case "write_to_file": {
+            //@ts-ignore
+            let { success, result } = await codebolt.fs.writeToFile(toolInput.path, toolInput.content);
+            return [success, result];
+        }
+
+        case "read_file": {
+            //@ts-ignore
+            let { success, result } = await codebolt.fs.readFile(toolInput.path);
+            return [success, result]
+        }
+
+        case "list_files":{
+                //@ts-ignore
+                let { success, result } = await codebolt.fs.listFile(toolInput.path, toolInput.recursive);
+                return [success, result]
+            }
+        case "list_code_definition_names":{
+                //@ts-ignore
+                let { success, result } = await codebolt.fs.listCodeDefinitionNames(toolInput.path);
+                return [success, result]
+            }
+
+        case "search_files":{
+                //@ts-ignore
+                let { success, result } = await codebolt.fs.searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern);
+                return [success, result]
+            }
+        case "execute_command":{
+                //@ts-ignore
+                let { success, result } = await codebolt.terminal.executeCommand(toolInput.command, false);
+                return [success, result]
+            }
+
+        case "ask_followup_question":
+            return this.askFollowupQuestion(toolInput.question)
+        case "attempt_completion":
+            return this.attemptCompletion(toolInput.result, toolInput.command)
+        default:
+            return [false, `Unknown tool: ${toolName}`]
+    }
+}
 
 
+export async function attemptApiRequest() {
+    try {
+        // let projectPath = await currentProjectPath();
+        // console.log(projectPath)
+        // cwd=projectPath;
+        let systemPrompt = await SYSTEM_PROMPT(cwd)
+        if (this.customInstructions && this.customInstructions.trim()) {
+            // altering the system prompt mid-task will break the prompt cache, but in the grand scheme this will not change often so it's better to not pollute user messages with it the way we have to with <potentially relevant details>
+            systemPrompt += `
+====
 
+USER'S CUSTOM INSTRUCTIONS
+
+The following additional instructions are provided by the user. They should be followed and given precedence in case of conflicts with previous instructions.
+
+${this.customInstructions.trim()}
+`
+        }
+        let tools = getTools()
+        let systemMessage = { role: "system", content: systemPrompt };
+        let messages = this.apiConversationHistory// convertToOpenAiMessages()
+        messages.unshift(systemMessage);
+        const createParams = {
+            full: true,
+            messages: messages,
+            tools: tools,
+            tool_choice: "auto",
+        };
+        //@ts-ignore
+        let { completion } = await codebolt.llm.inference(createParams);
+        return completion
+        // return {message}
+    } catch (error) {
+        console.log(error)
+
+        const { response } = await this.ask(
+            "api_req_failed",
+            error.message ?? JSON.stringify(error, null, 2)
+        )
+
+        await this.say("api_req_retried")
+        return this.attemptApiRequest()
+    }
+}
