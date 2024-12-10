@@ -1,21 +1,19 @@
 import { CodeboltDev } from './codebolt';
 import codebolt from '@codebolt/codeboltjs';
 import { ask_question, attemptApiRequest, executeTool, formatImagesIntoBlocks, getEnvironmentDetails, handleConsecutiveError, send_message_to_ui, findLast, findLastIndex, formatContentBlockToMarkdown } from "./helper"
+import { localState } from './localstate';
 
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
     let message = req.message;
     let threadId = req.threadId;
-    let images = req.images;
-    let consecutiveMistakeCount = 0;
-    let localCurrentUserContent = Array<any>;
-    let localMessageStore = []
+    let images = req.images; 
     let apiConversationHistory = [];
 
     let { projectPath } = await codebolt.project.getProjectPath();
     const responseTs = Date.now()
 
     // await this.say("text", message.userMessage, images, true)
-    localMessageStore.push({ ts: responseTs, type: "say", say: "text", text: message.userMessage, images });
+    localState.localMessageStore.push({ ts: responseTs, type: "say", say: "text", text: message.userMessage, images });
 
     let imageBlocks = formatImagesIntoBlocks(images)
     let nextUserContent = [
@@ -31,7 +29,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 
     while (true) {
 
-        handleConsecutiveError(consecutiveMistakeCount)
+        handleConsecutiveError(localState.consecutiveMistakeCount)
 
         await this.say(
 			"api_req_started",
@@ -181,10 +179,10 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
                     text: "If you have completed the user's task, use the attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)",
                 },
             ]
-            consecutiveMistakeCount++
+            localState.consecutiveMistakeCount++
         }
-        consecutiveMistakeCount = 0;
-        localCurrentUserContent = [];
+        localState.consecutiveMistakeCount = 0;
+        localState.localCurrentUserContent = [];
     }
 
     response("ok")
