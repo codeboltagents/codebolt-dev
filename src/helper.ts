@@ -3,11 +3,11 @@ let projectPath;
 import { promises as fs } from 'fs';
 import path from 'path';
 import { cwd } from 'process';
-/**
- * Sends a message to the user interface.
- * @param {string} message - The message to be sent to the UI.
- */
+import { getTools } from './prompt';
+import { SYSTEM_PROMPT } from './prompt';
 const COMMAND_OUTPUT_STRING = "Output:"
+
+
 export async function send_message_to_ui(message, type) {
     await codebolt.waitForConnection();
     let paylod:any = {};
@@ -57,6 +57,9 @@ export async function send_message_to_ui(message, type) {
 
     await codebolt.chat.sendMessage(agentMessage, paylod)
 }
+
+
+
 export async function ask_question(question, type) {
     let buttons:any = [{
         text: "Yes",
@@ -234,8 +237,9 @@ export async function ask_question(question, type) {
     const response = await codebolt.chat.sendConfirmationRequest(question, buttons, true);
     // console.log(message.userMessage);
     return response
-
 }
+
+
 export function formatAIMessage(completion) {
     const openAiMessage = completion.choices[0].message;
     const anthropicMessage = {
