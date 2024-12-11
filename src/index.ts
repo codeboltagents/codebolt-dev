@@ -5,9 +5,8 @@ import { localState } from './localstate';
 
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 	let { projectPath } = await codebolt.project.getProjectPath();
-	const responseTs = Date.now()
 	//TODO:use agent state
-	localState.localMessageStore.push({ ts: responseTs, type: "say", say: "text", text: req.message.userMessage, images: req.images });
+	localState.localMessageStore.push({ ts:  Date.now(), type: "say", say: "text", text: req.message.userMessage, images: req.images });
 	let imageBlocks = formatImagesIntoBlocks(req.images || [])
 	let userContent = [
 		{
