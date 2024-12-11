@@ -8,7 +8,7 @@ import { cwd } from 'process';
  * @param {string} message - The message to be sent to the UI.
  */
 const COMMAND_OUTPUT_STRING = "Output:"
-export async function send_message_to_ui(message, type) {
+export async function send_message_to_ui(type, message?, images?, isUserMessage = false) {
     await codebolt.waitForConnection();
     let paylod:any = {};
     let agentMessage;
@@ -375,6 +375,9 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, T
             return [false, `Unknown tool: ${toolName}`]
     }
 }
+
+
+
 
 
 export async function attemptApiRequest() {
