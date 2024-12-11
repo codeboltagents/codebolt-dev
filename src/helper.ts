@@ -16,50 +16,7 @@ const COMMAND_OUTPUT_STRING = "Output:"
 export async function send_message_to_ui(type, message?, images?, isUserMessage = false) {
     if (type == "text" || type == "error" || type == "tool" || type == "command") {
         let paylod: any = {};
-        let agentMessage;
-        switch (type) {
-            case "tool":
-                const tool = JSON.parse(message || "{}")
-                switch (tool.tool) {
-                    case "readFile":
-                        paylod.type = "file"
-                        agentMessage = "Codebolt read this file:";
-                        paylod.content = tool.content
-                        paylod.path = tool.path;
-                        break;
-                    case "listFilesTopLevel":
-                        paylod.type = "file"
-                        agentMessage = "Codebolt viewed the top level files in this directory:";
-                        paylod.content = tool.content
-                        paylod.path = tool.path
-                        break;
-                    case "listFilesRecursive":
-                        paylod.type = "file"
-                        agentMessage = "Codebolt recursively viewed all files in this directory:";
-                        paylod.content = tool.content
-                        paylod.path = tool.path
-                        break;
-                    case "listCodeDefinitionNames":
-                        paylod.type = "file"
-                        paylod.content = tool.content
-                        paylod.path = tool.path
-                        agentMessage = "Codebolt viewed source code definition names used in this directory:";
-                        break;
-                    case "searchFiles":
-                        paylod.type = "file"
-                        paylod.content = tool.content
-                        paylod.path = tool.path + (tool.filePattern ? `/(${tool.filePattern})` : "")
-                        agentMessage = `Codebolt searched this directory for <code>{tool.regex}</code>:`;
-                        break;
-                    default:
-                        agentMessage = message
-                        break;
-                }
-            default:
-                agentMessage = message
-                break;
-        }
-
+        let agentMessage = message
         await codebolt.chat.sendMessage(agentMessage, paylod)
     }
     await localState.localMessageStore.push({ type: "say", say: type, text: message, images })
@@ -382,7 +339,7 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, a
         }
 
         case "ask_followup_question":
-            return this.askFollowupQuestion(toolInput.question)
+            return askFollowupQuestion(toolInput.question)
         case "attempt_completion":
             //@ts-ignore
             return attemptCompletion(toolInput.result, toolInput.command)
@@ -390,8 +347,30 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, a
             return [false, `Unknown tool: ${toolName}`]
     }
 }
+ function handleWebviewAskResponse(askResponse, askResponseText, askResponseImages) {
+    const result = { response: askResponse, text: askResponseText, images: askResponseImages }
+    return result
+}
 
 
+
+export const askFollowupQuestion = async (question?: string): Promise<[boolean, any]> =>{
+    if (question === undefined) {
+        localState.consecutiveMistakeCount++;
+        return [false, await sayAndCreateMissingParamError("ask_followup_question", "question", "")];
+    }
+    localState.consecutiveMistakeCount = 0;
+    let result;
+    let codeboltAskReaponse: any = await ask_question(question, "followup");
+    if (codeboltAskReaponse.type === "confirmationResponse") {
+        result= handleWebviewAskResponse(codeboltAskReaponse.message.userMessage, undefined, [])
+    }
+    else {
+        codeboltAskReaponse.type === "feedbackResponse"
+        result= handleWebviewAskResponse("messageResponse", codeboltAskReaponse.message.userMessage, [])
+    }
+   return [false, result]
+}
 
 export const attemptCompletion = async (result, command) => {
     // result is required, command is optional
