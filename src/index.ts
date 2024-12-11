@@ -5,12 +5,10 @@ import { localState } from './localstate';
 
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 	let message = req.message;
-	let threadId = req.threadId;
 	let images = req.images;
 	let apiConversationHistory = [];
 	let { projectPath } = await codebolt.project.getProjectPath();
 	const responseTs = Date.now()
-	// await this.say("text", message.userMessage, images, true)
 	localState.localMessageStore.push({ ts: responseTs, type: "say", say: "text", text: message.userMessage, images });
 	let imageBlocks = formatImagesIntoBlocks(images)
 	let userContent = [
@@ -24,7 +22,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 	let includeFileDetails = true
 	let didEndLoop = false
 	while (true) {
-		handleConsecutiveError(localState.consecutiveMistakeCount)
+		userContent = await handleConsecutiveError(localState.consecutiveMistakeCount, userContent)
 		send_message_to_ui(
 			"api_req_started",
 			JSON.stringify({
@@ -45,24 +43,19 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 				.join("\n\n"),
 		})
 		try {
-			const response = await attemptApiRequest()
+			const response = await attemptApiRequest(projectPath)
 			let assistantResponses = []
-			// A response always returns text content blocks (it's just that before we were iterating over the completion_attempt response before we could append text response, resulting in bug)
 			for (const contentBlock of response.choices) {
-				// type can only be text or tool_use
 				if (contentBlock.message) {
 					assistantResponses.push(contentBlock.message)
 					await send_message_to_ui("text", contentBlock.message.content)
 				}
 			}
-			// need to save assistant responses to file before proceeding to tool use since user can exit at any moment and we wouldn't be able to save the assistant's response
 			if (assistantResponses.length > 0) {
 				for (let assistantResponse of assistantResponses) {
 					await apiConversationHistory.push(assistantResponse)
-
 				}
 			} else {
-				// this should never happen! it there's no assistant_responses, that means we got no text or tool_use content blocks from API which we should assume is an error
 				await send_message_to_ui(
 					"error",
 					"Unexpected API Response: The language model did not provide any assistant messages. This may indicate an issue with the API or the model's output."
@@ -72,12 +65,10 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 					content: [{ type: "text", text: "Failure: I did not provide a response." }],
 				})
 			}
-
 			let toolResults = []
 			let attemptCompletionBlock
 			let userRejectedATool = false;
 			const contentBlock = response.choices[0]
-			// for (const contentBlock of response.choices response.ch) {
 			if (contentBlock.message && contentBlock.message.tool_calls) {
 				for (const tool of contentBlock.message.tool_calls) {
 					const toolName = tool.function.name
@@ -105,10 +96,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 						}
 					}
 				}
-
 			}
-			// attempt_completion is always done last, since there might have been other tools that needed to be called first before the job is finished
-			// it's important to note that claude will order the tools logically in most cases, so we don't have to think about which tools make sense calling before others
 			if (attemptCompletionBlock) {
 				let [_, result] = await executeTool(
 					attemptCompletionBlock.function.name,

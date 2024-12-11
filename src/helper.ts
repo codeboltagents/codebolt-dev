@@ -3,6 +3,7 @@ let projectPath;
 import { promises as fs } from 'fs';
 import path from 'path';
 import { cwd } from 'process';
+import { getTools, SYSTEM_PROMPT } from './prompt';
 /**
  * Sends a message to the user interface.
  * @param {string} message - The message to be sent to the UI.
@@ -10,7 +11,7 @@ import { cwd } from 'process';
 const COMMAND_OUTPUT_STRING = "Output:"
 export async function send_message_to_ui(type, message?, images?, isUserMessage = false) {
     await codebolt.waitForConnection();
-    let paylod:any = {};
+    let paylod: any = {};
     let agentMessage;
     switch (type) {
         case "tool":
@@ -58,14 +59,14 @@ export async function send_message_to_ui(type, message?, images?, isUserMessage 
     await codebolt.chat.sendMessage(agentMessage, paylod)
 }
 export async function ask_question(question, type) {
-    let buttons:any = [{
+    let buttons: any = [{
         text: "Yes",
         value: "yes"
     }, {
         text: "No",
         value: "no"
     }];
-    let paylod:any = {
+    let paylod: any = {
         type: "",
         path: "",
         content: ""
@@ -345,27 +346,27 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, T
             return [success, result]
         }
 
-        case "list_files":{
-                //@ts-ignore
-                let { success, result } = await codebolt.fs.listFile(toolInput.path, toolInput.recursive);
-                return [success, result]
-            }
-        case "list_code_definition_names":{
-                //@ts-ignore
-                let { success, result } = await codebolt.fs.listCodeDefinitionNames(toolInput.path);
-                return [success, result]
-            }
+        case "list_files": {
+            //@ts-ignore
+            let { success, result } = await codebolt.fs.listFile(toolInput.path, toolInput.recursive);
+            return [success, result]
+        }
+        case "list_code_definition_names": {
+            //@ts-ignore
+            let { success, result } = await codebolt.fs.listCodeDefinitionNames(toolInput.path);
+            return [success, result]
+        }
 
-        case "search_files":{
-                //@ts-ignore
-                let { success, result } = await codebolt.fs.searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern);
-                return [success, result]
-            }
-        case "execute_command":{
-                //@ts-ignore
-                let { success, result } = await codebolt.terminal.executeCommand(toolInput.command, false);
-                return [success, result]
-            }
+        case "search_files": {
+            //@ts-ignore
+            let { success, result } = await codebolt.fs.searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern);
+            return [success, result]
+        }
+        case "execute_command": {
+            //@ts-ignore
+            let { success, result } = await codebolt.terminal.executeCommand(toolInput.command, false);
+            return [success, result]
+        }
 
         case "ask_followup_question":
             return this.askFollowupQuestion(toolInput.question)
@@ -380,7 +381,7 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, T
 
 
 
-export async function attemptApiRequest() {
+export async function attemptApiRequest(cwd) {
     try {
         // let projectPath = await currentProjectPath();
         // console.log(projectPath)
@@ -425,7 +426,7 @@ ${this.customInstructions.trim()}
     }
 }
 
-export async function handleConsecutiveError(consecutiveMistakeCount=0) {
+export async function handleConsecutiveError(consecutiveMistakeCount = 0,userContent) {
     if (consecutiveMistakeCount >= 3) {
         const { response, text, images } = await this.ask(
             "mistake_limit_reached",
@@ -444,6 +445,7 @@ export async function handleConsecutiveError(consecutiveMistakeCount=0) {
             )
         }
         this.consecutiveMistakeCount = 0
+        return userContent
     }
 }
 
@@ -461,64 +463,64 @@ export function formatImagesIntoBlocks(images?: string[]) {
 }
 
 export function findLastIndex<T>(array: Array<T>, predicate: (value: T, index: number, obj: T[]) => boolean): number {
-	let l = array.length
-	while (l--) {
-		if (predicate(array[l], l, array)) {
-			return l
-		}
-	}
-	return -1
+    let l = array.length
+    while (l--) {
+        if (predicate(array[l], l, array)) {
+            return l
+        }
+    }
+    return -1
 }
 
 export function findLast<T>(array: Array<T>, predicate: (value: T, index: number, obj: T[]) => boolean): T | undefined {
-	const index = findLastIndex(array, predicate)
-	return index === -1 ? undefined : array[index]
+    const index = findLastIndex(array, predicate)
+    return index === -1 ? undefined : array[index]
 }
 
 export function formatContentBlockToMarkdown(
-	block,
-	messages
+    block,
+    messages
 ): string {
-	switch (block.type) {
-		case "text":
-			return block.text
-		case "image":
-			return `[Image]`
-		case "tool_use":
-			let input: string
-			if (typeof block.input === "object" && block.input !== null) {
-				input = Object.entries(block.input)
-					.map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
-					.join("\n")
-			} else {
-				input = String(block.input)
-			}
-			return `[Tool Use: ${block.name}]\n${input}`
-		case "tool_result":
-			const toolName = findToolName(block.tool_use_id, messages)
-			if (typeof block.content === "string") {
-				return `[${toolName}${block.is_error ? " (Error)" : ""}]\n${block.content}`
-			} else if (Array.isArray(block.content)) {
-				return `[${toolName}${block.is_error ? " (Error)" : ""}]\n${block.content
-					.map((contentBlock) => formatContentBlockToMarkdown(contentBlock, messages))
-					.join("\n")}`
-			} else {
-				return `[${toolName}${block.is_error ? " (Error)" : ""}]`
-			}
-		default:
-			return "[Unexpected content type]"
-	}
+    switch (block.type) {
+        case "text":
+            return block.text
+        case "image":
+            return `[Image]`
+        case "tool_use":
+            let input: string
+            if (typeof block.input === "object" && block.input !== null) {
+                input = Object.entries(block.input)
+                    .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
+                    .join("\n")
+            } else {
+                input = String(block.input)
+            }
+            return `[Tool Use: ${block.name}]\n${input}`
+        case "tool_result":
+            const toolName = findToolName(block.tool_use_id, messages)
+            if (typeof block.content === "string") {
+                return `[${toolName}${block.is_error ? " (Error)" : ""}]\n${block.content}`
+            } else if (Array.isArray(block.content)) {
+                return `[${toolName}${block.is_error ? " (Error)" : ""}]\n${block.content
+                    .map((contentBlock) => formatContentBlockToMarkdown(contentBlock, messages))
+                    .join("\n")}`
+            } else {
+                return `[${toolName}${block.is_error ? " (Error)" : ""}]`
+            }
+        default:
+            return "[Unexpected content type]"
+    }
 }
 
 function findToolName(toolCallId: string, messages): string {
-	for (const message of messages) {
-		if (Array.isArray(message.content)) {
-			for (const block of message.content) {
-				if (block.type === "tool_use" && block.id === toolCallId) {
-					return block.name
-				}
-			}
-		}
-	}
-	return "Unknown Tool"
+    for (const message of messages) {
+        if (Array.isArray(message.content)) {
+            for (const block of message.content) {
+                if (block.type === "tool_use" && block.id === toolCallId) {
+                    return block.name
+                }
+            }
+        }
+    }
+    return "Unknown Tool"
 }
