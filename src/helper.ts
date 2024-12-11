@@ -2,6 +2,10 @@ import codebolt from '@codebolt/codeboltjs';
 let projectPath;
 import { promises as fs } from 'fs';
 import path from 'path';
+import { localState } from './localstate';
+// Since the instruction is to import 'os', and we cannot add import statements at this point, 
+// we will assume that the necessary functionality from 'os' is already available or not needed here.
+import os from 'os';
 import { cwd } from 'process';
 import { getTools, SYSTEM_PROMPT } from './prompt';
 /**
@@ -10,53 +14,58 @@ import { getTools, SYSTEM_PROMPT } from './prompt';
  */
 const COMMAND_OUTPUT_STRING = "Output:"
 export async function send_message_to_ui(type, message?, images?, isUserMessage = false) {
-    await codebolt.waitForConnection();
-    let paylod: any = {};
-    let agentMessage;
-    switch (type) {
-        case "tool":
-            const tool = JSON.parse(message || "{}")
-            switch (tool.tool) {
-                case "readFile":
-                    paylod.type = "file"
-                    agentMessage = "Codebolt read this file:";
-                    paylod.content = tool.content
-                    paylod.path = tool.path;
-                    break;
-                case "listFilesTopLevel":
-                    paylod.type = "file"
-                    agentMessage = "Codebolt viewed the top level files in this directory:";
-                    paylod.content = tool.content
-                    paylod.path = tool.path
-                    break;
-                case "listFilesRecursive":
-                    paylod.type = "file"
-                    agentMessage = "Codebolt recursively viewed all files in this directory:";
-                    paylod.content = tool.content
-                    paylod.path = tool.path
-                    break;
-                case "listCodeDefinitionNames":
-                    paylod.type = "file"
-                    paylod.content = tool.content
-                    paylod.path = tool.path
-                    agentMessage = "Codebolt viewed source code definition names used in this directory:";
-                    break;
-                case "searchFiles":
-                    paylod.type = "file"
-                    paylod.content = tool.content
-                    paylod.path = tool.path + (tool.filePattern ? `/(${tool.filePattern})` : "")
-                    agentMessage = `Codebolt searched this directory for <code>{tool.regex}</code>:`;
-                    break;
-                default:
-                    agentMessage = message
-                    break;
-            }
-        default:
-            agentMessage = message
-            break;
-    }
+    if (type == "text" || type == "error" || type == "tool" || type == "command") {
+        let paylod: any = {};
+        let agentMessage;
+        switch (type) {
+            case "tool":
+                const tool = JSON.parse(message || "{}")
+                switch (tool.tool) {
+                    case "readFile":
+                        paylod.type = "file"
+                        agentMessage = "Codebolt read this file:";
+                        paylod.content = tool.content
+                        paylod.path = tool.path;
+                        break;
+                    case "listFilesTopLevel":
+                        paylod.type = "file"
+                        agentMessage = "Codebolt viewed the top level files in this directory:";
+                        paylod.content = tool.content
+                        paylod.path = tool.path
+                        break;
+                    case "listFilesRecursive":
+                        paylod.type = "file"
+                        agentMessage = "Codebolt recursively viewed all files in this directory:";
+                        paylod.content = tool.content
+                        paylod.path = tool.path
+                        break;
+                    case "listCodeDefinitionNames":
+                        paylod.type = "file"
+                        paylod.content = tool.content
+                        paylod.path = tool.path
+                        agentMessage = "Codebolt viewed source code definition names used in this directory:";
+                        break;
+                    case "searchFiles":
+                        paylod.type = "file"
+                        paylod.content = tool.content
+                        paylod.path = tool.path + (tool.filePattern ? `/(${tool.filePattern})` : "")
+                        agentMessage = `Codebolt searched this directory for <code>{tool.regex}</code>:`;
+                        break;
+                    default:
+                        agentMessage = message
+                        break;
+                }
+            default:
+                agentMessage = message
+                break;
+        }
 
-    await codebolt.chat.sendMessage(agentMessage, paylod)
+        await codebolt.chat.sendMessage(agentMessage, paylod)
+    }
+    await localState.localMessageStore.push({ type: "say", say: type, text: message, images })
+
+
+
 }
 export async function ask_question(question, type) {
     let buttons: any = [{
@@ -290,7 +299,7 @@ export function formatAIMessage(completion) {
     }
     return anthropicMessage;
 }
-export async function getEnvironmentDetails(includeFileDetails = false) {
+export async function getEnvironmentDetails(cwd, includeFileDetails = false) {
     let details = ""
     // It could be useful for claude to know if the user went from one or no file to another between messages, so we always include this context
     details += "\n\n# Codebolt Visible Files"
@@ -332,7 +341,7 @@ export async function getEnvironmentDetails(includeFileDetails = false) {
     return `<environment_details>\n${details.trim()}\n</environment_details>`
 }
 
-export async function executeTool(toolName, toolInput: any): Promise<[boolean, ToolResponse]> {
+export async function executeTool(toolName, toolInput: any): Promise<[boolean, any]> {
     switch (toolName) {
         case "write_to_file": {
             //@ts-ignore
@@ -371,7 +380,8 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, T
         case "ask_followup_question":
             return this.askFollowupQuestion(toolInput.question)
         case "attempt_completion":
-            return this.attemptCompletion(toolInput.result, toolInput.command)
+            //@ts-ignore
+            return attemptCompletion(toolInput.result, toolInput.command)
         default:
             return [false, `Unknown tool: ${toolName}`]
     }
@@ -379,15 +389,47 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, T
 
 
 
+export const attemptCompletion = async (result, command) => {
+    // result is required, command is optional
+    if (result === undefined) {
+        localState.consecutiveMistakeCount++
+        return [false, await sayAndCreateMissingParamError("attempt_completion", "result", "")]
+    }
+    localState.consecutiveMistakeCount = 0
+    let resultToSend = result
 
+    return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
 
-export async function attemptApiRequest(cwd) {
+    // await this.say("user_feedback", text ?? "", images)
+    // return [
+    //     true,
+    //     this.formatToolResponseWithImages(
+    //         `The user has provided feedback on the results. Consider their input to continue the task, and then attempt completion again.\n<feedback>\n${text}\n</feedback>`,
+    //         images
+    //     ),
+    // ]
+}
+export const formatToolError = (error) => {
+    return `The tool execution failed with the following error:\n<error>\n${error}\n</error>`
+}
+export const sayAndCreateMissingParamError = async (toolName, paramName, relPath) => {
+    await send_message_to_ui(
+        "error",
+        `Claude tried to use ${toolName}${relPath ? ` for '${relPath}'` : ""
+        } without value for required parameter '${paramName}'. Retrying...`
+    )
+    return await formatToolError(
+        `Missing value for required parameter '${paramName}'. Please retry with complete response.`
+    )
+}
+
+export async function attemptApiRequest(cwd, customInstructions?: string) {
     try {
         // let projectPath = await currentProjectPath();
         // console.log(projectPath)
         // cwd=projectPath;
         let systemPrompt = await SYSTEM_PROMPT(cwd)
-        if (this.customInstructions && this.customInstructions.trim()) {
+        if (customInstructions && customInstructions.trim()) {
             // altering the system prompt mid-task will break the prompt cache, but in the grand scheme this will not change often so it's better to not pollute user messages with it the way we have to with <potentially relevant details>
             systemPrompt += `
 ====
@@ -400,15 +442,24 @@ ${this.customInstructions.trim()}
 `
         }
         let tools = getTools()
-        let systemMessage = { role: "system", content: systemPrompt };
-        let messages = this.apiConversationHistory// convertToOpenAiMessages()
-        messages.unshift(systemMessage);
+
+        const aiMessages = [
+            { role: "system", content: systemPrompt },
+            ...localState.apiConversationHistory,
+        ]
+
+
+
+        const incomingData = JSON.stringify(aiMessages, null, 2);
+
+        fs.writeFile('incomming.json', incomingData, 'utf8');
         const createParams = {
             full: true,
-            messages: messages,
+            messages: aiMessages,
             tools: tools,
             tool_choice: "auto",
         };
+
         //@ts-ignore
         let { completion } = await codebolt.llm.inference(createParams);
         return completion
@@ -426,7 +477,7 @@ ${this.customInstructions.trim()}
     }
 }
 
-export async function handleConsecutiveError(consecutiveMistakeCount = 0,userContent) {
+export async function handleConsecutiveError(consecutiveMistakeCount = 0, userContent) {
     if (consecutiveMistakeCount >= 3) {
         const { response, text, images } = await this.ask(
             "mistake_limit_reached",
@@ -445,8 +496,9 @@ export async function handleConsecutiveError(consecutiveMistakeCount = 0,userCon
             )
         }
         this.consecutiveMistakeCount = 0
-        return userContent
+
     }
+    return userContent
 }
 
 export function formatImagesIntoBlocks(images?: string[]) {
