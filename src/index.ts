@@ -7,9 +7,9 @@ import { localState } from './localstate';
 
 
 
-// codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-const test = async (req) => {
-	await codebolt.waitForConnection();
+codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+// const test = async (req) => {
+	// await codebolt.waitForConnection();
 	console.log("req", req)
 	let message = req.message;
 	let images = req.images || [];
@@ -196,12 +196,12 @@ const test = async (req) => {
 		localState.localCurrentUserContent = [];
 	}
 
-	// response("ok")
-	// })
-}
+	response("ok")
+	})
+// }
 
 
 
-test({ message: { userMessage: "hi" } })
+// test({ message: { userMessage: "hi" } })
 
 
