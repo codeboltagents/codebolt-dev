@@ -16,7 +16,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
     ];
     
     let includeFileDetails = true;
-    let nextUserContent = localState.apiConversationHistory; // Use localState.apiConversationHistory
+    let nextUserContent = localState.apiConversationHistory; 
     while (true) {
         await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserContent);
         const environmentDetails = await getEnvironmentDetails(projectPath, includeFileDetails);
@@ -31,7 +31,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
             }
         }
         try {
-            const response = await attemptApiRequest(nextUserContent);
+            const response = await attemptApiRequest(projectPath);
             let assistantResponses = [];
             for (const contentBlock of response.choices) {
                 if (contentBlock.message) {
