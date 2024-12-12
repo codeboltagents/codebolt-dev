@@ -3,8 +3,8 @@ import codebolt from '@codebolt/codeboltjs';
 import { ask_question, attemptApiRequest, executeTool, formatImagesIntoBlocks, getEnvironmentDetails, handleConsecutiveError, send_message_to_ui, findLast, findLastIndex, formatContentBlockToMarkdown } from "./helper"
 import { localState } from './localstate';
 
-// codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-const test = async (req: any) => {
+codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+// const test = async (req: any) => {
 	await codebolt.waitForConnection();
 	let { projectPath } = await codebolt.project.getProjectPath();
 	let userContent = [
@@ -138,12 +138,12 @@ const test = async (req: any) => {
 		]
 		localState.consecutiveMistakeCount++
 	}
-}
-// 	response("ok")
-// })
+// }
+	response("ok")
+})
 // }
 
-test({ message: { userMessage: "create a node js app" } })
+// test({ message: { userMessage: "create a node js app" } })
 
 
 
