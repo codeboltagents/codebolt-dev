@@ -1,12 +1,12 @@
 import codebolt from '@codebolt/codeboltjs';
-let projectPath;
+
 import { promises as fs } from 'fs';
 import path from 'path';
 import { localState } from './localstate';
 // Since the instruction is to import 'os', and we cannot add import statements at this point, 
 // we will assume that the necessary functionality from 'os' is already available or not needed here.
 import os from 'os';
-import { cwd } from 'process';
+
 import { getTools, SYSTEM_PROMPT } from './prompt';
 /**
  * Sends a message to the user interface.
@@ -24,8 +24,6 @@ export async function send_message_to_ui(type, message?, images?, isUserMessage 
 
 
 }
-
-
 
 export async function ask_question(question, type) {
     let buttons: any = [{
@@ -73,77 +71,6 @@ export async function ask_question(question, type) {
         case "followup":
             setPrimaryButtonText(undefined)
             setSecondaryButtonText(undefined)
-            break
-        case "tool":
-            const tool = JSON.parse(question || "{}")
-            switch (tool.tool) {
-
-                case "editedExistingFile":
-                    agentMessage = "Codebolt wants to edit this file";
-                    paylod.content = tool.diff
-                    paylod.path = tool.path;
-                    paylod.type = "file"
-                    setPrimaryButtonText("Save");
-                    setSecondaryButtonText("Reject");
-                    break;
-
-                case "newFileCreated":
-                    agentMessage = "Codebolt wants to create a new file:";
-                    setPrimaryButtonText("Save");
-                    paylod.content = tool.content
-                    paylod.path = tool.path;
-                    paylod.type = "file"
-                    setSecondaryButtonText("Reject");
-                    break;
-
-                case "readFile":
-                    agentMessage = "Codebolt wants to read this file:";
-                    paylod.content = tool.content
-                    paylod.path = tool.path;
-                    setPrimaryButtonText("Approve");
-                    setSecondaryButtonText("Reject");
-                    paylod.type = "file"
-                    break;
-                case "listFilesTopLevel":
-                    agentMessage = "Codebolt wants to view the top level files in this directory:";
-                    paylod.content = tool.content
-                    paylod.path = tool.path;
-                    setPrimaryButtonText("Approve");
-                    setSecondaryButtonText("Reject");
-                    paylod.type = "file"
-                    break;
-
-                case "listFilesRecursive":
-                    paylod.content = tool.content
-                    paylod.path = tool.path;
-                    agentMessage = "Codebolt wants to recursively view all files in this directory:";
-                    setPrimaryButtonText("Approve");
-                    setSecondaryButtonText("Reject");
-                    paylod.type = "file"
-                    break;
-                case "listCodeDefinitionNames":
-                    paylod.content = tool.content
-                    paylod.path = tool.path;
-                    agentMessage = "Codebolt wants to view source code definition names used in this directory:";
-                    setPrimaryButtonText("Approve");
-                    setSecondaryButtonText("Reject");
-                    paylod.type = "file"
-                    break;
-                case "searchFiles":
-                    paylod.content = tool.content
-                    paylod.path = tool.path + (tool.filePattern ? `/(${tool.filePattern})` : "")
-                    agentMessage = `Codebolt wants to search this directory for ${tool.regex}:`;
-                    setPrimaryButtonText("Approve");
-                    setSecondaryButtonText("Reject");
-                    paylod.type = "file"
-                    break;
-                default:
-                    return null
-                    break;
-
-            }
-            question = undefined
-            await codebolt.chat.sendMessage(agentMessage, paylod)
             break
         case "command":
             paylod.type = "command"
@@ -207,59 +134,6 @@ export async function ask_question(question, type) {
 }
 
 
-export function formatAIMessage(completion) {
-    const openAiMessage = completion.choices[0].message;
-    const anthropicMessage = {
-        id: completion.id,
-        type: "message",
-        role: openAiMessage.role,
-        content: [
-            {
-                type: "text",
-                text: openAiMessage.content || "",
-            },
-        ],
-        model: completion.model,
-        stop_reason: (() => {
-            switch (completion.choices[0].finish_reason) {
-                case "stop":
-                    return "end_turn";
-                case "length":
-                    return "max_tokens";
-                case "tool_calls":
-                    return "tool_use";
-                case "content_filter":
-                default:
-                    return null;
-            }
-        })(),
-        stop_sequence: null,
-        usage: {
-            input_tokens: completion.usage?.prompt_tokens || 0,
-            output_tokens: completion.usage?.completion_tokens || 0,
-        },
-    };
-
-    if (openAiMessage.tool_calls && openAiMessage.tool_calls.length > 0) {
-        anthropicMessage.content.push(
-            ...openAiMessage.tool_calls.map((toolCall) => {
-                let parsedInput = {};
-                try {
-                    parsedInput = JSON.parse(toolCall.function.arguments || "{}");
-                } catch (error) {
-                    console.error("Failed to parse tool arguments:", error);
-                }
-                return {
-                    type: "tool_use",
-                    id: toolCall.id,
-                    name: toolCall.function.name,
-                    input: parsedInput,
-                };
-            })
-        );
-    }
-    return anthropicMessage;
-}
 export async function getEnvironmentDetails(cwd, includeFileDetails = false) {
     let details = ""
     // It could be useful for claude to know if the user went from one or no file to another between messages, so we always include this context
@@ -347,14 +221,14 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, a
             return [false, `Unknown tool: ${toolName}`]
     }
 }
- function handleWebviewAskResponse(askResponse, askResponseText, askResponseImages) {
+function handleWebviewAskResponse(askResponse, askResponseText, askResponseImages) {
     const result = { response: askResponse, text: askResponseText, images: askResponseImages }
     return result
 }
 
 
 
-export const askFollowupQuestion = async (question?: string): Promise<[boolean, any]> =>{
+export const askFollowupQuestion = async (question?: string): Promise<[boolean, any]> => {
     if (question === undefined) {
         localState.consecutiveMistakeCount++;
         return [false, await sayAndCreateMissingParamError("ask_followup_question", "question", "")];
@@ -363,13 +237,13 @@ export const askFollowupQuestion = async (question?: string): Promise<[boolean, 
     let result;
     let codeboltAskReaponse: any = await ask_question(question, "followup");
     if (codeboltAskReaponse.type === "confirmationResponse") {
-        result= handleWebviewAskResponse(codeboltAskReaponse.message.userMessage, undefined, [])
+        result = handleWebviewAskResponse(codeboltAskReaponse.message.userMessage, undefined, [])
     }
     else {
         codeboltAskReaponse.type === "feedbackResponse"
-        result= handleWebviewAskResponse("messageResponse", codeboltAskReaponse.message.userMessage, [])
+        result = handleWebviewAskResponse("messageResponse", codeboltAskReaponse.message.userMessage, [])
     }
-   return [false, result]
+    return [false, result]
 }
 
 export const attemptCompletion = async (result, command) => {
@@ -430,12 +304,6 @@ ${this.customInstructions.trim()}
             { role: "system", content: systemPrompt },
             ...localState.apiConversationHistory,
         ]
-
-
-
-        const incomingData = JSON.stringify(aiMessages, null, 2);
-
-        fs.writeFile('incomming.json', incomingData, 'utf8');
         const createParams = {
             full: true,
             messages: aiMessages,

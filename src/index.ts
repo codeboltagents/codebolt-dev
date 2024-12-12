@@ -1,19 +1,18 @@
-import { CodeboltDev } from './codebolt';
+
 import codebolt from '@codebolt/codeboltjs';
 import { ask_question, attemptApiRequest, executeTool, formatImagesIntoBlocks, getEnvironmentDetails, handleConsecutiveError, send_message_to_ui, findLast, findLastIndex, formatContentBlockToMarkdown } from "./helper"
 import { localState } from './localstate';
 
-codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+// codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+const test = async (req: any) => {
+	await codebolt.waitForConnection();
 	let { projectPath } = await codebolt.project.getProjectPath();
-	//TODO:use agent state
-	localState.localMessageStore.push({ ts:  Date.now(), type: "say", say: "text", text: req.message.userMessage, images: req.images });
-	let imageBlocks = formatImagesIntoBlocks(req.images || [])
 	let userContent = [
 		{
 			type: "text",
 			text: `<task>\n${req.message.userMessage}\n</task>`,
 		},
-		...imageBlocks,
+		...req.message.uploadedImages || [],
 	];
 	let includeFileDetails = true
 	let nextUserContent = userContent
@@ -74,6 +73,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 						attemptCompletionBlock = tool
 					} else {
 						const [didUserReject, result] = await executeTool(toolName, toolInput);
+						console.log("result", result)
 						toolResults.push({
 							role: "tool",
 							tool_call_id: toolUseId,
@@ -95,6 +95,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 					didEndLoop = true
 					result = "The user is satisfied with the result."
 				}
+				console.log("result", result)
 				toolResults.push({
 					role: "tool",
 					tool_call_id: attemptCompletionBlock.id,
@@ -115,7 +116,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 								type: "text",
 								text: "I am pleased you are satisfied with the result. Do you have a new task for me?",
 							},
-						],
+						]
 					})
 				} else {
 					nextUserContent = toolResults
@@ -137,10 +138,12 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 		]
 		localState.consecutiveMistakeCount++
 	}
-})
+}
+// 	response("ok")
+// })
 // }
 
-// test({ message: { userMessage: "create a node js app" } })
+test({ message: { userMessage: "create a node js app" } })
 
 
 
