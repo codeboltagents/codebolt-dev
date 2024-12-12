@@ -1,5 +1,5 @@
 import codebolt from '@codebolt/codeboltjs';
-import { ask_question, attemptApiRequest, executeTool, formatImagesIntoBlocks, getEnvironmentDetails, handleConsecutiveError, send_message_to_ui, findLast, findLastIndex, formatContentBlockToMarkdown } from "./helper"
+import { attemptApiRequest, executeTool, getEnvironmentDetails, handleConsecutiveError, send_message_to_ui, findLast, findLastIndex, formatContentBlockToMarkdown, getEditorFileStatus, getIncludedFileDetails } from "./helper"
 import { localState } from './localstate';
 
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
@@ -15,13 +15,18 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
         ...req.message.uploadedImages || [],
     ];
     
-    let includeFileDetails = true;
+    let firstTimeLoop = true;
     let nextUserContent = localState.apiConversationHistory; 
+	let includedFiles= getIncludedFileDetails(projectPath)
+
+	let editorFilesStatus = await getEditorFileStatus();
     while (true) {
         await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserContent);
-        const environmentDetails = await getEnvironmentDetails(projectPath, includeFileDetails);
-        if (includeFileDetails) {
-            nextUserContent.push({ type: "text", text: environmentDetails });
+        // const environmentDetails = await getEnvironmentDetails(projectPath, firstTimeLoop);
+		//only first time
+        if (firstTimeLoop) {
+			//TODO:check format of editorFilesStatus and includedFiles
+            nextUserContent.push({ type: "text", text: editorFilesStatus+includedFiles });
            //TODO: use agent state instead of localState.apiConversationHistory
             await localState.apiConversationHistory.push({ role: "user", content: nextUserContent });
         } else {
@@ -121,7 +126,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
                     });
                 } else {
                     nextUserContent = toolResults;
-                    includeFileDetails = false;
+                    firstTimeLoop = false;
                     continue;
                 }
             }
