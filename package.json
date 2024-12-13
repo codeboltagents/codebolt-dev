@@ -8,7 +8,7 @@
     "/dist"
   ],
   "dependencies": {
-    "@codebolt/codeboltjs": "^1.1.69"
+    "@codebolt/codeboltjs": "^1.1.70"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",

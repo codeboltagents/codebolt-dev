@@ -25,6 +25,11 @@ export async function send_message_to_ui(type, message?, images?, isUserMessage 
 
 }
 
+//toolcall
+//toll respose
+
+
+
 export async function ask_question(question, type) {
     let buttons: any = [{
         text: "Yes",
@@ -134,7 +139,7 @@ export async function ask_question(question, type) {
 }
 
 
-export async function getEnvironmentDetails(cwd, includeFileDetails = false) {
+export async function getEditorFileStatus(cwd?) {
     let details = ""
     // It could be useful for claude to know if the user went from one or no file to another between messages, so we always include this context
     details += "\n\n# Codebolt Visible Files"
@@ -160,18 +165,42 @@ export async function getEnvironmentDetails(cwd, includeFileDetails = false) {
     } else {
         details += "\n(No open tabs)"
     }
+    return details
+}
+
+export function setupInitionMessage(message) {
+    return [
+        {
+            type: "text",
+            text: `<task>\n${message.userMessage}\n</task>`,
+        },
+        ...message.uploadedImages || [],
+    ];
+}
+
+export const getToolDetail = (tool) => {
+    return {
+        toolName: tool.function.name,
+        toolInput: JSON.parse(tool.function.arguments || "{}"),
+        toolUseId: tool.id
+    };
+}
+
+
+export async function getIncludedFileDetails(cwd) {
+    let details = ""
+
 
     // this.didEditFile = false // reset, this lets us know when to wait for saved files to update terminals
 
-    if (includeFileDetails) {
-        const isDesktop = cwd === path.join(os.homedir(), "Desktop")
-        //@ts-ignore
-        let { success, result } = await codebolt.fs.listFile(cwd, !isDesktop)
-        details += `\n\n# Current Working Directory (${cwd}) Files\n${result}${isDesktop
-            ? "\n(Note: Only top-level contents shown for Desktop by default. Use list_files to explore further if necessary.)"
-            : ""
-            }`
-    }
+    const isDesktop = cwd === path.join(os.homedir(), "Desktop")
+    //@ts-ignore
+    let { success, result } = await codebolt.fs.listFile(cwd, !isDesktop)
+    details += `\n\n# Current Working Directory (${cwd}) Files\n${result}${isDesktop
+        ? "\n(Note: Only top-level contents shown for Desktop by default. Use list_files to explore further if necessary.)"
+        : ""
+        }`
+
 
     return `<environment_details>\n${details.trim()}\n</environment_details>`
 }
@@ -310,7 +339,9 @@ ${this.customInstructions.trim()}
             tools: tools,
             tool_choice: "auto",
         };
-
+        console.log(aiMessages)
+        // fs.writeFile("filePath.json", aiMessages, 'utf8')
+      
         //@ts-ignore
         let { completion } = await codebolt.llm.inference(createParams);
         return completion

@@ -3,4 +3,5 @@ export const localState = {
     consecutiveMistakeCount: 0,
     localCurrentUserContent: [],
     apiConversationHistory: [],
+    toolResults:[]
 }
