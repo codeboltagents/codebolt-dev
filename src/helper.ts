@@ -327,7 +327,7 @@ The following additional instructions are provided by the user. They should be f
 ${this.customInstructions.trim()}
 `
         }
-        let tools = getTools()
+        let tools = getTools(cwd)
 
         const aiMessages = [
             { role: "system", content: systemPrompt },
@@ -341,7 +341,7 @@ ${this.customInstructions.trim()}
         };
         console.log(aiMessages)
         // fs.writeFile("filePath.json", aiMessages, 'utf8')
-      
+
         //@ts-ignore
         let { completion } = await codebolt.llm.inference(createParams);
         return completion
