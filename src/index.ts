@@ -11,8 +11,8 @@ import {
 } from "./helper";
 import { localState } from './localstate';
 
-// codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-const test = async (req, response) => {
+ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+
 	await codebolt.waitForConnection();
 	let { projectPath } = await codebolt.project.getProjectPath();
 	let userMessage = setupInitionMessage(req.message)
@@ -167,12 +167,10 @@ const test = async (req, response) => {
 	//     ]
 	// })
 	response("ok")
-}
-// })}
 
-test({ message: { userMessage: "run this project" } }, function () {
-	console.log("test")
-})
+ })
+
+
 
 
 
