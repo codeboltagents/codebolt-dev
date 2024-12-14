@@ -309,7 +309,7 @@ export const sayAndCreateMissingParamError = async (toolName, paramName, relPath
     )
 }
 
-export async function attemptApiRequest(cwd, customInstructions?: string) {
+export async function attemptApiRequest(apiConversationHistory,cwd, customInstructions?: string) {
     try {
         // let projectPath = await currentProjectPath();
         // console.log(projectPath)
@@ -331,7 +331,7 @@ ${this.customInstructions.trim()}
 
         const aiMessages = [
             { role: "system", content: systemPrompt },
-            ...localState.apiConversationHistory,
+            ...apiConversationHistory,
         ]
         const createParams = {
             full: true,

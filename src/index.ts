@@ -19,7 +19,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 	let firstTimeLoop = true
 	let nextUserMessage = userMessage
 	while (true) {
-		await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
+		nextUserMessage =await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
 		if (firstTimeLoop) {
 			nextUserMessage.push({ type: "text", text: includedFileDetails })
 			await localState.apiConversationHistory.push({ role: "user", content: nextUserMessage })
@@ -29,7 +29,8 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			}
 		}
 		try {
-			const response = await attemptApiRequest(projectPath)
+			//
+			const response = await attemptApiRequest(localState.apiConversationHistory,projectPath)
 			let assistantResponses = []
 			for (const contentBlock of response.choices) {
 				if (contentBlock.message) {
