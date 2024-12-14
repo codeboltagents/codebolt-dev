@@ -28,7 +28,15 @@ export async function send_message_to_ui(type, message?, images?, isUserMessage 
 //toolcall
 //toll respose
 
+export const getToolResult=(tool_call_id,content)=>{
+    let toolResult = {
+        role: "tool",
+        tool_call_id,
+        content,
+    }
+    return toolResult
 
+}
 
 export async function ask_question(question, type) {
     let buttons: any = [{
