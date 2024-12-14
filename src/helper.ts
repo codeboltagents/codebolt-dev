@@ -324,8 +324,9 @@ ${this.customInstructions.trim()}
 
         const aiMessages = [
             { role: "system", content: systemPrompt },
-            ...apiConversationHistory,
+            ...localState.apiConversationHistory,
         ]
+        fs.writeFile("filePath.json",JSON.stringify(aiMessages))
         const createParams = {
             full: true,
             messages: aiMessages,
