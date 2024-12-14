@@ -361,30 +361,24 @@ ${this.customInstructions.trim()}
     }
 }
 
-export async function handleConsecutiveError(consecutiveMistakeCount = 0, userContent) {
-    if (consecutiveMistakeCount >= 3) {
-        //@ts-ignore
-        const { response, text, images } = await ask_question(
-            "mistake_limit_reached",
-            `This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
+export async function askUserAfterConsecutiveError(){
+    const resp = await ask_question(
+        "mistake_limit_reached",
+        `This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
 
-        )
-        if (response === "messageResponse") {
-            userContent.push(
-                ...[
-                    {
-                        type: "text",
-                        text: `You seem to be having trouble proceeding. The user has provided the following feedback to help guide you:\n<feedback>\n${text}\n</feedback>`,
-                    } as any,
-                    ...this.formatImagesIntoBlocks(images),
-                ]
-            )
-        }
-        localState.apiConversationHistory.push(userContent)
-        localState.consecutiveMistakeCount = 0
+    )
+    return resp;
+}
 
-    }
-    return userContent
+export function messageToHistoryIfUserClarifies(text,images){
+    const msg = [
+        {
+            type: "text",
+            text: `You seem to be having trouble proceeding. The user has provided the following feedback to help guide you:\n<feedback>\n${text}\n</feedback>`,
+        } as any,
+        ...this.formatImagesIntoBlocks(images),
+    ]
+    return msg;
 }
 
 export function formatImagesIntoBlocks(images?: string[]) {

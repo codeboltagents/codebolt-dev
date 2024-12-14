@@ -3,12 +3,13 @@ import codebolt from '@codebolt/codeboltjs';
 import {
 	attemptApiRequest,
 	executeTool,
-	handleConsecutiveError,
 	send_message_to_ui,
 	setupInitionMessage,
 	getIncludedFileDetails,
 	getToolDetail,
-	getToolResult
+	getToolResult,
+	askUserAfterConsecutiveError,
+	messageToHistoryIfUserClarifies
 } from "./helper";
 import { localState } from './localstate';
 
@@ -129,8 +130,18 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 				nextUserMessage = localState.toolResults
 
 			}
-			 await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
-
+			if (localState.consecutiveMistakeCount >= 3) {
+				//@ts-ignore
+				const { ur_response, ur_text, ur_images } = await askUserAfterConsecutiveError()
+				if (ur_response === "messageResponse") {
+					const msg = messageToHistoryIfUserClarifies(ur_text, ur_images)
+					nextUserMessage.push(...msg);						//Check this
+					localState.apiConversationHistory.push(nextUserMessage)
+        			localState.consecutiveMistakeCount = 0
+				} else {
+					didEndLoop = true
+				}
+			}
 
 		} catch (error) {
 			break
