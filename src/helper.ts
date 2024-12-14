@@ -363,7 +363,7 @@ ${this.customInstructions.trim()}
 
 export async function handleConsecutiveError(consecutiveMistakeCount = 0, userContent) {
     if (consecutiveMistakeCount >= 3) {
-        const { response, text, images } = await this.ask(
+        const { response, text, images } = await ask_question(
             "mistake_limit_reached",
             `This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
 

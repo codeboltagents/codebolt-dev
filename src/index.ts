@@ -18,19 +18,13 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 	let { projectPath } = await codebolt.project.getProjectPath();
 	let userMessage = setupInitionMessage(req.message)
 	const includedFileDetails = await getIncludedFileDetails(projectPath)
-	let firstTimeLoop = true
-	let nextUserMessage = userMessage
+	let nextUserMessage = userMessage;
+	nextUserMessage.push({ type: "text", text: includedFileDetails })
+	localState.apiConversationHistory.push({ role: "user", content: nextUserMessage })
 	let didEndLoop = false
 	while (!didEndLoop) {
 		await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
-		if (firstTimeLoop) {
-			nextUserMessage.push({ type: "text", text: includedFileDetails })
-			localState.apiConversationHistory.push({ role: "user", content: nextUserMessage })
-		} else {
-			for (let userMessage of nextUserMessage) {
-				localState.apiConversationHistory.push(userMessage)
-			}
-		}
+
 		try {
 			const response = await attemptApiRequest(localState.apiConversationHistory, projectPath)
 
@@ -125,18 +119,15 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 					}
 				]
 				localState.consecutiveMistakeCount++
+				localState.apiConversationHistory.push(nextUserMessage[0])
+
 			}
 
 			else {
-				if (didEndLoop) {
-					for (let result of localState.toolResults) {
-						localState.apiConversationHistory.push(result)
-					}
+				for (let result of localState.toolResults) {
+					localState.apiConversationHistory.push(result)
 				}
-				else {
-					nextUserMessage = localState.toolResults
-					firstTimeLoop = false
-				}
+				nextUserMessage = localState.toolResults
 
 			}
 
