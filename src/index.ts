@@ -31,6 +31,10 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 		}
 		try {
 			const response = await attemptApiRequest(localState.apiConversationHistory,projectPath)
+
+            /**
+             * If there is text message to be sent to user present in the AI Reply, send it to user.
+             */
 			let isMessagePresentinReply = false;
 			for (const contentBlock of response.choices) {
 				if (contentBlock.message) {
@@ -85,7 +89,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			}
 
             /**
-             * Handle if Task Completion is given by AI
+             * Handle if Task Completion is given by AI. This is put separately so that it is called at last.
              */
 			if (taskCompletedBlock) {                   
 				let [_, result] = await executeTool(
@@ -102,27 +106,11 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 					content: result,
 				})
 			}
-			if (localState.toolResults.length > 0) {
-				if (didEndLoop) {
-					for (let result of localState.toolResults) {
-						localState.apiConversationHistory.push(result)
-					}
 
-					localState.apiConversationHistory.push({
-						role: "assistant",
-						content: [
-							{
-								type: "text",
-								text: "I am pleased you are satisfied with the result.",
-							},
-						]
-					})
-				} else {
-					nextUserMessage = localState.toolResults
-					firstTimeLoop = false
-				}
-			}
-            else{
+            /**
+             * Handle if Tool does not have a result, we assume the ai has nothing more to do, then you need to ask the AI to explicitly send Completion task. 
+             */
+			if (localState.toolResults.length = 0) {
                 nextUserMessage = [
                     {
                         type: "text",
@@ -130,11 +118,34 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
                     },
                 ]
                 localState.consecutiveMistakeCount++
+			}
+
+
+
+            else{
+                for (let result of localState.toolResults) {
+                    localState.apiConversationHistory.push(result)
+                }
+
+
+					nextUserMessage = localState.toolResults
+					firstTimeLoop = false
+
             }
 		} catch (error) {
 			break
 		}	
 	}
+
+    // convert to send_message_to_ui
+    localState.apiConversationHistory.push({role: "assistant",
+        content: [
+            {
+                type: "text",
+                text: "I am pleased you are satisfied with the result.",
+            },
+        ]
+    })
 	response("ok")
 })
 
