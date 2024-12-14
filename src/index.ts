@@ -108,6 +108,16 @@ const test = async (req, response) => {
 					content: result,
 				})
 			}
+            
+
+            /**
+             * Setting the Response of Tool Results as Usermessage for next time. 
+             * Also pushing all the tool result in api conversation history.
+             */
+            for (let result of localState.toolResults) {
+                localState.apiConversationHistory.push(result)
+            }
+            nextUserMessage = localState.toolResults
 
 			/**
 			 * Handle if Tool does not have a result, we assume the ai has nothing more to do, then you need to ask the AI to explicitly send Completion task. 
