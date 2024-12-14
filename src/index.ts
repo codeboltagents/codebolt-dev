@@ -7,11 +7,12 @@ import {
 	send_message_to_ui,
 	setupInitionMessage,
 	getIncludedFileDetails,
-	getToolDetail
+	getToolDetail,
+	getToolResult
 } from "./helper";
 import { localState } from './localstate';
 
- codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 
 	await codebolt.waitForConnection();
 	let { projectPath } = await codebolt.project.getProjectPath();
@@ -69,22 +70,15 @@ import { localState } from './localstate';
 							taskCompletedBlock = tool
 						} else {
 							const [didUserReject, result] = await executeTool(toolName, toolInput);
-							localState.toolResults.push({
-								role: "tool",
-								tool_call_id: toolUseId,
-								content: result,
-							})
+
+							localState.toolResults.push(getToolResult(toolUseId, result))
 							if (didUserReject) {
 								userRejectedToolUse = true
 							}
 						}
 					}
 					else {
-						localState.toolResults.push({
-							type: "tool",
-							tool_use_id: toolUseId,
-							content: "Skipping tool execution due to previous tool user rejection.",
-						})
+						localState.toolResults.push(getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection."))
 					}
 				}
 			}
@@ -97,27 +91,23 @@ import { localState } from './localstate';
 					taskCompletedBlock.function.name,
 					JSON.parse(taskCompletedBlock.function.arguments || "{}")
 				)
-
 				if (result === "") {
 					didEndLoop = true
 					result = "The user is satisfied with the result."
 				}
-				localState.toolResults.push({
-					role: "tool",
-					tool_call_id: taskCompletedBlock.id,
-					content: result,
-				})
-			}
-            
+				localState.toolResults.push(getToolResult(taskCompletedBlock.id, result))
 
-            /**
-             * Setting the Response of Tool Results as Usermessage for next time. 
-             * Also pushing all the tool result in api conversation history.
-             */
-            for (let result of localState.toolResults) {
-                localState.apiConversationHistory.push(result)
-            }
-            nextUserMessage = localState.toolResults
+			}
+
+
+			/**
+			 * Setting the Response of Tool Results as Usermessage for next time. 
+			 * Also pushing all the tool result in api conversation history.
+			 */
+			for (let result of localState.toolResults) {
+				localState.apiConversationHistory.push(result)
+			}
+			nextUserMessage = localState.toolResults
 
 			/**
 			 * Handle if Tool does not have a result, we assume the ai has nothing more to do, then you need to ask the AI to explicitly send Completion task. 
@@ -149,7 +139,7 @@ import { localState } from './localstate';
 				}
 
 			}
-			
+
 		} catch (error) {
 			break
 		}
@@ -168,7 +158,7 @@ import { localState } from './localstate';
 	// })
 	response("ok")
 
- })
+})
 
 
 
