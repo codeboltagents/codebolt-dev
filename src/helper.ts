@@ -282,18 +282,11 @@ export const attemptCompletion = async (result, command) => {
         return [false, await sayAndCreateMissingParamError("attempt_completion", "result", "")]
     }
     localState.consecutiveMistakeCount = 0
-    let resultToSend = result
+
 
     return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
 
-    // await this.say("user_feedback", text ?? "", images)
-    // return [
-    //     true,
-    //     this.formatToolResponseWithImages(
-    //         `The user has provided feedback on the results. Consider their input to continue the task, and then attempt completion again.\n<feedback>\n${text}\n</feedback>`,
-    //         images
-    //     ),
-    // ]
+  
 }
 export const formatToolError = (error) => {
     return `The tool execution failed with the following error:\n<error>\n${error}\n</error>`
