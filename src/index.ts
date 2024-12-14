@@ -35,7 +35,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			for (const contentBlock of response.choices) {
 				if (contentBlock.message) {
 					assistantResponses.push(contentBlock.message)
-					if (contentBlock.message)
+					if (contentBlock.message.content!=null)
 						await send_message_to_ui("text", contentBlock.message.content)
 				}
 			}
