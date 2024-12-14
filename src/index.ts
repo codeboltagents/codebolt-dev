@@ -14,17 +14,17 @@ import { localState } from './localstate';
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 
 	let { projectPath } = await codebolt.project.getProjectPath();
-	let userContent = setupInitionMessage(req.message)
+	let userMessage = setupInitionMessage(req.message)
 	const includedFileDetails = await getIncludedFileDetails(projectPath)
 	let firstTimeLoop = true
-	let nextUserContent = userContent
+	let nextUserMessage = userMessage
 	while (true) {
-		await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserContent)
+		await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
 		if (firstTimeLoop) {
-			nextUserContent.push({ type: "text", text: includedFileDetails })
-			await localState.apiConversationHistory.push({ role: "user", content: nextUserContent })
+			nextUserMessage.push({ type: "text", text: includedFileDetails })
+			await localState.apiConversationHistory.push({ role: "user", content: nextUserMessage })
 		} else {
-			for (let userMessage of nextUserContent) {
+			for (let userMessage of nextUserMessage) {
 				await localState.apiConversationHistory.push(userMessage)
 			}
 		}
@@ -113,7 +113,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 						]
 					})
 				} else {
-					nextUserContent = localState.toolResults
+					nextUserMessage = localState.toolResults
 					firstTimeLoop = false
 					continue
 				}
@@ -124,7 +124,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 		} catch (error) {
 			break
 		}
-		nextUserContent = [
+		nextUserMessage = [
 			{
 				type: "text",
 				text: "If you have completed the user's task, use the attempt_completion tool. If you require additional information from the user, use the ask_followup_question tool. Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. (This is an automated message, so do not respond to it conversationally.)",
