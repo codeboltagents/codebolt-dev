@@ -138,17 +138,9 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 		}	
 	}
 
-    // convert to send_message_to_ui
-
+    // Final Message
 	send_message_to_ui("text", "I am pleased you are satisfied with the result.")
-    // localState.apiConversationHistory.push({role: "assistant",
-    //     content: [
-    //         {
-    //             type: "text",
-    //             text: "I am pleased you are satisfied with the result.",
-    //         },
-    //     ]
-    // })
+
 	response("ok")
 })
 
