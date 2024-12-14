@@ -19,7 +19,7 @@ export async function send_message_to_ui(type, message?, images?, isUserMessage 
         let agentMessage = message
         await codebolt.chat.sendMessage(agentMessage, paylod)
     }
-    await localState.localMessageStore.push({ type: "say", say: type, text: message, images })
+    // await localState.localMessageStore.push({ type: "say", say: type, text: message, images })
 
 
 
@@ -28,7 +28,7 @@ export async function send_message_to_ui(type, message?, images?, isUserMessage 
 //toolcall
 //toll respose
 
-export const getToolResult=(tool_call_id,content)=>{
+export const getToolResult = (tool_call_id, content) => {
     let toolResult = {
         role: "tool",
         tool_call_id,
@@ -294,7 +294,7 @@ export const attemptCompletion = async (result, command) => {
 
     return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
 
-  
+
 }
 export const formatToolError = (error) => {
     return `The tool execution failed with the following error:\n<error>\n${error}\n</error>`
@@ -310,7 +310,7 @@ export const sayAndCreateMissingParamError = async (toolName, paramName, relPath
     )
 }
 
-export async function attemptApiRequest(apiConversationHistory,cwd, customInstructions?: string) {
+export async function attemptApiRequest(apiConversationHistory, cwd, customInstructions?: string) {
     try {
         // let projectPath = await currentProjectPath();
         // console.log(projectPath)
@@ -334,7 +334,7 @@ ${this.customInstructions.trim()}
             { role: "system", content: systemPrompt },
             ...localState.apiConversationHistory,
         ]
-        fs.writeFile("filePath.json",JSON.stringify(aiMessages))
+        fs.writeFile("filePath.json", JSON.stringify(aiMessages))
         const createParams = {
             full: true,
             messages: aiMessages,
@@ -380,6 +380,7 @@ export async function handleConsecutiveError(consecutiveMistakeCount = 0, userCo
                 ]
             )
         }
+        localState.apiConversationHistory.push(userContent)
         localState.consecutiveMistakeCount = 0
 
     }

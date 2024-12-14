@@ -129,7 +129,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 				nextUserMessage = localState.toolResults
 
 			}
-			nextUserMessage = await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
+			 await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
 
 
 		} catch (error) {
