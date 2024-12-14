@@ -23,7 +23,6 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 	localState.apiConversationHistory.push({ role: "user", content: nextUserMessage })
 	let didEndLoop = false
 	while (!didEndLoop) {
-		await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
 
 		try {
 			const response = await attemptApiRequest(localState.apiConversationHistory, projectPath)
@@ -130,6 +129,8 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 				nextUserMessage = localState.toolResults
 
 			}
+			nextUserMessage = await handleConsecutiveError(localState.consecutiveMistakeCount, nextUserMessage)
+
 
 		} catch (error) {
 			break
