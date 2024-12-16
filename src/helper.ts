@@ -85,60 +85,8 @@ export async function ask_question(question, type) {
             setPrimaryButtonText(undefined)
             setSecondaryButtonText(undefined)
             break
-        case "command":
-            paylod.type = "command"
-            const splitMessage = (text) => {
-                const outputIndex = text.indexOf(COMMAND_OUTPUT_STRING)
-                if (outputIndex === -1) {
-                    return { command: text, output: "" }
-                }
-                return {
-                    command: text.slice(0, outputIndex).trim(),
-                    output: text
-                        .slice(outputIndex + COMMAND_OUTPUT_STRING.length)
-                        .trim()
-                        .split("")
-                        .map((char) => {
-                            switch (char) {
-                                case "\t":
-                                    return "→   "
-                                case "\b":
-                                    return "⌫"
-                                case "\f":
-                                    return "⏏"
-                                case "\v":
-                                    return "⇳"
-                                default:
-                                    return char
-                            }
-                        })
-                        .join(""),
-                }
-            }
-            const { command, output } = splitMessage(question || "")
-            paylod.command = command;
-            agentMessage = "Codebolt wants to execute this command:";
-            await codebolt.chat.sendMessage(agentMessage, paylod)
-            question = undefined
-            setPrimaryButtonText("Run Command")
-            setSecondaryButtonText("Reject")
-            break
-        case "command_output":
-            setPrimaryButtonText("Proceed While Running")
-            setSecondaryButtonText(undefined)
-            break
-        case "completion_result":
-            setPrimaryButtonText("Start New Task")
-            setSecondaryButtonText(undefined)
-            break
-        case "resume_task":
-            setPrimaryButtonText("Resume Task")
-            setSecondaryButtonText(undefined)
-            break
-        case "resume_completed_task":
-            setPrimaryButtonText("Start New Task")
-            setSecondaryButtonText(undefined)
-            break
+        
+
     }
     // console.log("sending message ", question, buttons)
     const response = await codebolt.chat.sendConfirmationRequest(question, buttons, true);
@@ -300,11 +248,10 @@ export const formatToolError = (error) => {
     return `The tool execution failed with the following error:\n<error>\n${error}\n</error>`
 }
 export const sayAndCreateMissingParamError = async (toolName, paramName, relPath) => {
-    await send_message_to_ui(
-        "error",
-        `Claude tried to use ${toolName}${relPath ? ` for '${relPath}'` : ""
-        } without value for required parameter '${paramName}'. Retrying...`
-    )
+
+    await codebolt.chat.sendMessage(`Codebolt Dev tried to use ${toolName}${relPath ? ` for '${relPath}'` : ""
+        } without value for required parameter '${paramName}'. Retrying...`, {})
+
     return await formatToolError(
         `Missing value for required parameter '${paramName}'. Please retry with complete response.`
     )
@@ -361,7 +308,7 @@ ${this.customInstructions.trim()}
     }
 }
 
-export async function askUserAfterConsecutiveError(){
+export async function askUserAfterConsecutiveError() {
     const resp = await ask_question(
         "mistake_limit_reached",
         `This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
@@ -370,7 +317,7 @@ export async function askUserAfterConsecutiveError(){
     return resp;
 }
 
-export function messageToHistoryIfUserClarifies(text,images){
+export function messageToHistoryIfUserClarifies(text, images) {
     const msg = [
         {
             type: "text",

@@ -37,7 +37,8 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 					isMessagePresentinReply = true;
 					localState.apiConversationHistory.push(contentBlock.message)
 					if (contentBlock.message.content != null)
-						await send_message_to_ui("text", contentBlock.message.content)
+						await codebolt.chat.sendMessage(contentBlock.message.content,{})
+					
 				}
 			}
 			if (!isMessagePresentinReply) {
@@ -148,8 +149,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 		}
 	}
 
-	send_message_to_ui("text", "I am pleased you are satisfied with the result.")
-
+	await codebolt.chat.sendMessage('I am pleased you are satisfied with the result.',{})
 	response("ok")
 
 })

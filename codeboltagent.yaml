@@ -1,6 +1,6 @@
-title: CodeBolt App Installer
-version: 1.0.0
-unique_id: codebolt_app_installer
+title: CodeBolt Test
+version: 1.0.1
+unique_id: test_app
 initial_message: Codebolt App Installer is here to help you install dependencies and run your application efficiently.
 description: Codebolt App Installer assists in setting up and running applications by managing dependencies and executing necessary tasks.
 tags:
