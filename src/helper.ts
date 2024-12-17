@@ -13,17 +13,7 @@ import { getTools, SYSTEM_PROMPT } from './prompt';
  * @param {string} message - The message to be sent to the UI.
  */
 const COMMAND_OUTPUT_STRING = "Output:"
-export async function send_message_to_ui(type, message?, images?, isUserMessage = false) {
-    if (type == "text" || type == "error" || type == "tool" || type == "command") {
-        let paylod: any = {};
-        let agentMessage = message
-        await codebolt.chat.sendMessage(agentMessage, paylod)
-    }
-    // await localState.localMessageStore.push({ type: "say", say: type, text: message, images })
 
-
-
-}
 
 //toolcall
 //toll respose
