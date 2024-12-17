@@ -3,7 +3,6 @@ import codebolt from '@codebolt/codeboltjs';
 import {
 	attemptApiRequest,
 	executeTool,
-	send_message_to_ui,
 	setupInitionMessage,
 	getIncludedFileDetails,
 	getToolDetail,
