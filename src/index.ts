@@ -13,8 +13,8 @@ import {
 } from "./helper";
 import { localState } from './localstate';
 
-codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-
+// codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+const startTask = async (req,response) => {
 	await codebolt.waitForConnection();
 	let { projectPath } = await codebolt.project.getProjectPath();
 	let userMessage = setupInitionMessage(req.message)
@@ -124,13 +124,6 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 
 			}
 
-			else {
-				for (let result of localState.toolResults) {
-					localState.apiConversationHistory.push(result)
-				}
-				nextUserMessage = localState.toolResults
-
-			}
 			if (localState.consecutiveMistakeCount >= 3) {
 				//@ts-ignore
 				const { ur_response, ur_text, ur_images } = await askUserAfterConsecutiveError()
@@ -149,9 +142,13 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 		}
 	}
 
-	await codebolt.chat.sendMessage('I am pleased you are satisfied with the result.',{})
+	// await codebolt.chat.sendMessage('I am pleased you are satisfied with the result.',{})
 	response("ok")
+}
 
+// })
+startTask({message:{userMessage: "create node js app"}},function(response){
+	console.log("Response from startTask: ", response)
 })
 
 

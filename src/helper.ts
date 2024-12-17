@@ -46,7 +46,7 @@ export async function ask_question(question, type) {
         text: "No",
         value: "no"
     }];
- 
+
     function setPrimaryButtonText(text) {
         if (text === undefined) {
             buttons.splice(0, 1); // Remove the second button from the array
@@ -80,7 +80,7 @@ export async function ask_question(question, type) {
             setPrimaryButtonText(undefined)
             setSecondaryButtonText(undefined)
             break
-        
+
 
     }
     // console.log("sending message ", question, buttons)
@@ -196,7 +196,7 @@ export async function executeTool(toolName, toolInput: any): Promise<[boolean, a
             return askFollowupQuestion(toolInput.question)
         case "attempt_completion":
             //@ts-ignore
-            return attemptCompletion(toolInput.result, toolInput.command)
+            return attemptCompletion(toolInput.result || toolInput.output, toolInput.command)
         default:
             return [false, `Unknown tool: ${toolName}`]
     }
@@ -233,6 +233,9 @@ export const attemptCompletion = async (result, command) => {
         return [false, await sayAndCreateMissingParamError("attempt_completion", "result", "")]
     }
     localState.consecutiveMistakeCount = 0
+    if (result) {
+        codebolt.chat.sendMessage(result, {})
+    }
 
 
     return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
@@ -274,7 +277,7 @@ ${this.customInstructions.trim()}
 
         const aiMessages = [
             { role: "system", content: systemPrompt },
-            ...localState.apiConversationHistory,
+            ...apiConversationHistory,
         ]
         fs.writeFile("filePath.json", JSON.stringify(aiMessages))
         const createParams = {
