@@ -46,12 +46,7 @@ export async function ask_question(question, type) {
         text: "No",
         value: "no"
     }];
-    let paylod: any = {
-        type: "",
-        path: "",
-        content: ""
-    }
-    let agentMessage = ""
+ 
     function setPrimaryButtonText(text) {
         if (text === undefined) {
             buttons.splice(0, 1); // Remove the second button from the array
