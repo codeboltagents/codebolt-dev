@@ -12,11 +12,9 @@ import { getTools, SYSTEM_PROMPT } from './prompt';
  * Sends a message to the user interface.
  * @param {string} message - The message to be sent to the UI.
  */
-const COMMAND_OUTPUT_STRING = "Output:"
 
 
-//toolcall
-//toll respose
+
 
 export const getToolResult = (tool_call_id, content) => {
     let toolResult = {
@@ -269,7 +267,7 @@ ${this.customInstructions.trim()}
             { role: "system", content: systemPrompt },
             ...apiConversationHistory,
         ]
-        fs.writeFile("filePath.json", JSON.stringify(aiMessages))
+      
         const createParams = {
             full: true,
             messages: aiMessages,

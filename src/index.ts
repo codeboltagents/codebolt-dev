@@ -12,8 +12,8 @@ import {
 } from "./helper";
 import { localState } from './localstate';
 
-// codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-const startTask = async (req,response) => {
+codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+
 	await codebolt.waitForConnection();
 	let { projectPath } = await codebolt.project.getProjectPath();
 	let userMessage = setupInitionMessage(req.message)
@@ -141,14 +141,12 @@ const startTask = async (req,response) => {
 		}
 	}
 
-	// await codebolt.chat.sendMessage('I am pleased you are satisfied with the result.',{})
-	response("ok")
-}
 
-// })
-startTask({message:{userMessage: "create node js app"}},function(response){
-	console.log("Response from startTask: ", response)
+	response("ok")
+
+
 })
+
 
 
 
