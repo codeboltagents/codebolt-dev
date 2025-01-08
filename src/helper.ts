@@ -1,8 +1,7 @@
 import codebolt from '@codebolt/codeboltjs';
 
-import { promises as fs } from 'fs';
 import path from 'path';
-// import { localState } from './localstate';
+
 // Since the instruction is to import 'os', and we cannot add import statements at this point, 
 // we will assume that the necessary functionality from 'os' is already available or not needed here.
 import os from 'os';
@@ -23,56 +22,7 @@ export const getToolResult = (tool_call_id, content) => {
 
 }
 
-export async function ask_question(question, type) {
-    let buttons: any = [{
-        text: "Yes",
-        value: "yes"
-    }, {
-        text: "No",
-        value: "no"
-    }];
 
-    function setPrimaryButtonText(text) {
-        if (text === undefined) {
-            buttons.splice(0, 1); // Remove the second button from the array
-        }
-        else {
-            buttons[0].text = text
-            buttons[0].value = text
-        }
-
-    }
-    function setSecondaryButtonText(text) {
-        if (text === undefined) {
-            buttons.splice(1, 1); // Remove the second button from the array
-        }
-        else {
-            buttons[1].value = text
-            buttons[1].text = text
-        }
-
-    }
-    switch (type) {
-        case "api_req_failed":
-            setPrimaryButtonText("Retry")
-            setSecondaryButtonText("Start New Task")
-            break
-        case "mistake_limit_reached":
-            setPrimaryButtonText("Proceed Anyways")
-            setSecondaryButtonText("Start New Task")
-            break
-        case "followup":
-            setPrimaryButtonText(undefined)
-            setSecondaryButtonText(undefined)
-            break
-
-
-    }
-    // console.log("sending message ", question, buttons)
-    const response = await codebolt.chat.sendConfirmationRequest(question, buttons, true);
-    // console.log(message.userMessage);
-    return response
-}
 
 
 export async function getEditorFileStatus(cwd?) {
@@ -141,100 +91,9 @@ export async function getIncludedFileDetails(cwd) {
     return `<environment_details>\n${details.trim()}\n</environment_details>`
 }
 
-// export async function executeTool(toolName, toolInput: any): Promise<[boolean, any]> {
-//     switch (toolName) {
-//         case "write_to_file": {
-//             //@ts-ignore
-//             let { success, result } = await codebolt.fs.writeToFile(toolInput.path, toolInput.content);
-//             return [success, result];
-//         }
-//         case "read_file": {
-//             //@ts-ignore
-//             let { success, result } = await codebolt.fs.readFile(toolInput.path);
-//             return [success, result]
-//         }
-//         case "list_files": {
-//             //@ts-ignore
-//             let { success, result } = await codebolt.fs.listFile(toolInput.path, toolInput.recursive);
-//             return [success, result]
-//         }
-//         case "list_code_definition_names": {
-//             //@ts-ignore
-//             let { success, result } = await codebolt.fs.listCodeDefinitionNames(toolInput.path);
-//             return [success, result]
-//         }
-//         case "search_files": {
-//             //@ts-ignore
-//             let { success, result } = await codebolt.fs.searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern);
-//             return [success, result]
-//         }
-//         case "execute_command": {
-//             //@ts-ignore
-//             let { success, result } = await codebolt.terminal.executeCommand(toolInput.command, false);
-//             return [success, result]
-//         }
-//         case "ask_followup_question":
-//             return askFollowupQuestion(toolInput.question)
-//         case "attempt_completion":
-//             //@ts-ignore
-//             return attemptCompletion(toolInput.result || toolInput.output, toolInput.command)
-//         default:
-//             return [false, `Unknown tool: ${toolName}`]
-//     }
-// }
-
-
-// function handleWebviewAskResponse(askResponse, askResponseText, askResponseImages) {
-//     const result = { response: askResponse, text: askResponseText, images: askResponseImages }
-//     return result
-// }
 
 
 
-// export const askFollowupQuestion = async (question?: string): Promise<[boolean, any]> => {
-//     if (question === undefined) {
-//         localState.consecutiveMistakeCount++;
-//         return [false, await sayAndCreateMissingParamError("ask_followup_question", "question", "")];
-//     }
-//     localState.consecutiveMistakeCount = 0;
-//     let result;
-//     let codeboltAskReaponse: any = await ask_question(question, "followup");
-//     if (codeboltAskReaponse.type === "confirmationResponse") {
-//         result = handleWebviewAskResponse(codeboltAskReaponse.message.userMessage, undefined, [])
-//     }
-//     else {
-//         codeboltAskReaponse.type === "feedbackResponse"
-//         result = handleWebviewAskResponse("messageResponse", codeboltAskReaponse.message.userMessage, [])
-//     }
-//     return [false, result]
-// }
-
-// export const attemptCompletion = async (result, command) => {
-//     // result is required, command is optional
-//     if (result === undefined) {
-//         localState.consecutiveMistakeCount++
-//         return [false, await sayAndCreateMissingParamError("attempt_completion", "result", "")]
-//     }
-//     localState.consecutiveMistakeCount = 0
-//     if (result) {
-//         codebolt.chat.sendMessage(result, {})
-//     }
-//     return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
-// }
-
-
-export const formatToolError = (error) => {
-    return `The tool execution failed with the following error:\n<error>\n${error}\n</error>`
-}
-export const sayAndCreateMissingParamError = async (toolName, paramName, relPath) => {
-
-    await codebolt.chat.sendMessage(`Codebolt Dev tried to use ${toolName}${relPath ? ` for '${relPath}'` : ""
-        } without value for required parameter '${paramName}'. Retrying...`, {})
-
-    return await formatToolError(
-        `Missing value for required parameter '${paramName}'. Please retry with complete response.`
-    )
-}
 
 export async function attemptApiRequest(apiConversationHistory, cwd, customInstructions?: string) {
     try {
@@ -276,11 +135,8 @@ ${this.customInstructions.trim()}
         // return {message}
     } catch (error) {
         console.log(error)
-
-        const { response } = await this.ask(
-            "api_req_failed",
-            error.message ?? JSON.stringify(error, null, 2)
-        )
+        await codebolt.chat.adkQuestion(error.message ?? JSON.stringify(error, null, 2)
+            , ["Retry", "Start New Task"], true);
 
         await this.say("api_req_retried")
         return this.attemptApiRequest()
@@ -288,11 +144,9 @@ ${this.customInstructions.trim()}
 }
 
 export async function askUserAfterConsecutiveError() {
-    const resp = await ask_question(
-        "mistake_limit_reached",
-        `This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
+    let resp = await codebolt.chat.adkQuestion(`This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
+        , ["Retry", "Start New Task"], true);
 
-    )
     return resp;
 }
 
@@ -383,18 +237,6 @@ function findToolName(toolCallId: string, messages): string {
     return "Unknown Tool"
 }
 
-
 export async function getTools() {
-    // let tools = [];
-    // let mcpList = await codebolt.MCP.getEnabledMCPS();
-    // console.log(mcpList);
-    // let tools = await codebolt.MCP.getMcpTools(['codebolt:readFile', 'codebolt:writeFile', 'codebolt:commit', "postgres:executeCommand"])
-    // tools = tools.concat(await codebolt.MCP.getAllMCPTools('GitHub'))
-    // tools = tools.concat(await codebolt.MCP.getMCPTool('slack:slack_list_channels'))
-    // for (const mcp of mcpList) {
-    //     console.log(mcp);
-    //     // tools = tools.concat(codebolt.MCP.getAllMCPTools(mcp.name));
-    // }
-    // return tools;
-   return await codebolt.MCP.getAllMCPTools('codebolt')
+    return await codebolt.MCP.getAllMCPTools('codebolt')
 }

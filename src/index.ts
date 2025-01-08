@@ -12,12 +12,14 @@ import {
 
 let consecutiveMistakeCount= 0;
 let apiConversationHistory= [];
-let toolResults=[]
-codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-
+let toolResults=[];
+// codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+(async () => {
 	await codebolt.waitForConnection();
 	let { projectPath } = await codebolt.project.getProjectPath();
-	let userMessage = setupInitionMessage(req.message)
+	console.log("projectPath", projectPath)
+	let userMessage = setupInitionMessage({userMessage:"create node js app with express and typescript"})
+	console.log(userMessage)
 	const includedFileDetails = await getIncludedFileDetails(projectPath)
 	let nextUserMessage = userMessage;
 	nextUserMessage.push({ type: "text", text: includedFileDetails })
@@ -141,12 +143,10 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			break
 		}
 	}
+	// response("ok")
+})()
 
-
-	response("ok")
-
-
-})
+// })
 
 
 
