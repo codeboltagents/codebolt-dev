@@ -135,7 +135,7 @@ ${this.customInstructions.trim()}
         // return {message}
     } catch (error) {
         console.log(error)
-        await codebolt.chat.adkQuestion(error.message ?? JSON.stringify(error, null, 2)
+        await codebolt.chat.askQuestion(error.message ?? JSON.stringify(error, null, 2)
             , ["Retry", "Start New Task"], true);
 
         await this.say("api_req_retried")
@@ -144,7 +144,7 @@ ${this.customInstructions.trim()}
 }
 
 export async function askUserAfterConsecutiveError() {
-    let resp = await codebolt.chat.adkQuestion(`This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
+    let resp = await codebolt.chat.askQuestion(`This may indicate a failure in his thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
         , ["Retry", "Start New Task"], true);
 
     return resp;

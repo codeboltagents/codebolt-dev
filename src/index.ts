@@ -14,7 +14,7 @@ let consecutiveMistakeCount= 0;
 let apiConversationHistory= [];
 let toolResults=[]
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-	await codebolt.waitForConnection();
+
 	let { projectPath } = await codebolt.project.getProjectPath();
 	let userMessage = setupInitionMessage(req.message)
 	const includedFileDetails = await getIncludedFileDetails(projectPath)
