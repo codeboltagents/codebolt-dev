@@ -2,19 +2,16 @@ import codebolt from '@codebolt/codeboltjs';
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import { localState } from './localstate';
+// import { localState } from './localstate';
 // Since the instruction is to import 'os', and we cannot add import statements at this point, 
 // we will assume that the necessary functionality from 'os' is already available or not needed here.
 import os from 'os';
 
-import { getTools, SYSTEM_PROMPT } from './prompt';
+import { SYSTEM_PROMPT } from './prompt';
 /**
  * Sends a message to the user interface.
  * @param {string} message - The message to be sent to the UI.
  */
-
-
-
 
 export const getToolResult = (tool_call_id, content) => {
     let toolResult = {
@@ -144,92 +141,88 @@ export async function getIncludedFileDetails(cwd) {
     return `<environment_details>\n${details.trim()}\n</environment_details>`
 }
 
-export async function executeTool(toolName, toolInput: any): Promise<[boolean, any]> {
-    switch (toolName) {
-        case "write_to_file": {
-            //@ts-ignore
-            let { success, result } = await codebolt.fs.writeToFile(toolInput.path, toolInput.content);
-            return [success, result];
-        }
+// export async function executeTool(toolName, toolInput: any): Promise<[boolean, any]> {
+//     switch (toolName) {
+//         case "write_to_file": {
+//             //@ts-ignore
+//             let { success, result } = await codebolt.fs.writeToFile(toolInput.path, toolInput.content);
+//             return [success, result];
+//         }
+//         case "read_file": {
+//             //@ts-ignore
+//             let { success, result } = await codebolt.fs.readFile(toolInput.path);
+//             return [success, result]
+//         }
+//         case "list_files": {
+//             //@ts-ignore
+//             let { success, result } = await codebolt.fs.listFile(toolInput.path, toolInput.recursive);
+//             return [success, result]
+//         }
+//         case "list_code_definition_names": {
+//             //@ts-ignore
+//             let { success, result } = await codebolt.fs.listCodeDefinitionNames(toolInput.path);
+//             return [success, result]
+//         }
+//         case "search_files": {
+//             //@ts-ignore
+//             let { success, result } = await codebolt.fs.searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern);
+//             return [success, result]
+//         }
+//         case "execute_command": {
+//             //@ts-ignore
+//             let { success, result } = await codebolt.terminal.executeCommand(toolInput.command, false);
+//             return [success, result]
+//         }
+//         case "ask_followup_question":
+//             return askFollowupQuestion(toolInput.question)
+//         case "attempt_completion":
+//             //@ts-ignore
+//             return attemptCompletion(toolInput.result || toolInput.output, toolInput.command)
+//         default:
+//             return [false, `Unknown tool: ${toolName}`]
+//     }
+// }
 
-        case "read_file": {
-            //@ts-ignore
-            let { success, result } = await codebolt.fs.readFile(toolInput.path);
-            return [success, result]
-        }
 
-        case "list_files": {
-            //@ts-ignore
-            let { success, result } = await codebolt.fs.listFile(toolInput.path, toolInput.recursive);
-            return [success, result]
-        }
-        case "list_code_definition_names": {
-            //@ts-ignore
-            let { success, result } = await codebolt.fs.listCodeDefinitionNames(toolInput.path);
-            return [success, result]
-        }
-
-        case "search_files": {
-            //@ts-ignore
-            let { success, result } = await codebolt.fs.searchFiles(toolInput.path, toolInput.regex, toolInput.filePattern);
-            return [success, result]
-        }
-        case "execute_command": {
-            //@ts-ignore
-            let { success, result } = await codebolt.terminal.executeCommand(toolInput.command, false);
-            return [success, result]
-        }
-
-        case "ask_followup_question":
-            return askFollowupQuestion(toolInput.question)
-        case "attempt_completion":
-            //@ts-ignore
-            return attemptCompletion(toolInput.result || toolInput.output, toolInput.command)
-        default:
-            return [false, `Unknown tool: ${toolName}`]
-    }
-}
-function handleWebviewAskResponse(askResponse, askResponseText, askResponseImages) {
-    const result = { response: askResponse, text: askResponseText, images: askResponseImages }
-    return result
-}
+// function handleWebviewAskResponse(askResponse, askResponseText, askResponseImages) {
+//     const result = { response: askResponse, text: askResponseText, images: askResponseImages }
+//     return result
+// }
 
 
 
-export const askFollowupQuestion = async (question?: string): Promise<[boolean, any]> => {
-    if (question === undefined) {
-        localState.consecutiveMistakeCount++;
-        return [false, await sayAndCreateMissingParamError("ask_followup_question", "question", "")];
-    }
-    localState.consecutiveMistakeCount = 0;
-    let result;
-    let codeboltAskReaponse: any = await ask_question(question, "followup");
-    if (codeboltAskReaponse.type === "confirmationResponse") {
-        result = handleWebviewAskResponse(codeboltAskReaponse.message.userMessage, undefined, [])
-    }
-    else {
-        codeboltAskReaponse.type === "feedbackResponse"
-        result = handleWebviewAskResponse("messageResponse", codeboltAskReaponse.message.userMessage, [])
-    }
-    return [false, result]
-}
+// export const askFollowupQuestion = async (question?: string): Promise<[boolean, any]> => {
+//     if (question === undefined) {
+//         localState.consecutiveMistakeCount++;
+//         return [false, await sayAndCreateMissingParamError("ask_followup_question", "question", "")];
+//     }
+//     localState.consecutiveMistakeCount = 0;
+//     let result;
+//     let codeboltAskReaponse: any = await ask_question(question, "followup");
+//     if (codeboltAskReaponse.type === "confirmationResponse") {
+//         result = handleWebviewAskResponse(codeboltAskReaponse.message.userMessage, undefined, [])
+//     }
+//     else {
+//         codeboltAskReaponse.type === "feedbackResponse"
+//         result = handleWebviewAskResponse("messageResponse", codeboltAskReaponse.message.userMessage, [])
+//     }
+//     return [false, result]
+// }
 
-export const attemptCompletion = async (result, command) => {
-    // result is required, command is optional
-    if (result === undefined) {
-        localState.consecutiveMistakeCount++
-        return [false, await sayAndCreateMissingParamError("attempt_completion", "result", "")]
-    }
-    localState.consecutiveMistakeCount = 0
-    if (result) {
-        codebolt.chat.sendMessage(result, {})
-    }
+// export const attemptCompletion = async (result, command) => {
+//     // result is required, command is optional
+//     if (result === undefined) {
+//         localState.consecutiveMistakeCount++
+//         return [false, await sayAndCreateMissingParamError("attempt_completion", "result", "")]
+//     }
+//     localState.consecutiveMistakeCount = 0
+//     if (result) {
+//         codebolt.chat.sendMessage(result, {})
+//     }
+//     return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
+// }
 
 
-    return [false, ""] // signals to recursive loop to stop (for now this never happens since yesButtonTapped will trigger a new task)
-
-
-}
 export const formatToolError = (error) => {
     return `The tool execution failed with the following error:\n<error>\n${error}\n</error>`
 }
@@ -261,13 +254,13 @@ The following additional instructions are provided by the user. They should be f
 ${this.customInstructions.trim()}
 `
         }
-        let tools = getTools(cwd)
+        let tools = await getTools()
 
         const aiMessages = [
             { role: "system", content: systemPrompt },
             ...apiConversationHistory,
         ]
-      
+
         const createParams = {
             full: true,
             messages: aiMessages,
@@ -388,4 +381,20 @@ function findToolName(toolCallId: string, messages): string {
         }
     }
     return "Unknown Tool"
+}
+
+
+export async function getTools() {
+    // let tools = [];
+    // let mcpList = await codebolt.MCP.getEnabledMCPS();
+    // console.log(mcpList);
+    // let tools = await codebolt.MCP.getMcpTools(['codebolt:readFile', 'codebolt:writeFile', 'codebolt:commit', "postgres:executeCommand"])
+    // tools = tools.concat(await codebolt.MCP.getAllMCPTools('GitHub'))
+    // tools = tools.concat(await codebolt.MCP.getMCPTool('slack:slack_list_channels'))
+    // for (const mcp of mcpList) {
+    //     console.log(mcp);
+    //     // tools = tools.concat(codebolt.MCP.getAllMCPTools(mcp.name));
+    // }
+    // return tools;
+   return await codebolt.MCP.getAllMCPTools('codebolt')
 }

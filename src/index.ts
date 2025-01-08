@@ -2,7 +2,6 @@
 import codebolt from '@codebolt/codeboltjs';
 import {
 	attemptApiRequest,
-	executeTool,
 	setupInitionMessage,
 	getIncludedFileDetails,
 	getToolDetail,
@@ -10,8 +9,10 @@ import {
 	askUserAfterConsecutiveError,
 	messageToHistoryIfUserClarifies
 } from "./helper";
-import { localState } from './localstate';
 
+let consecutiveMistakeCount= 0;
+let apiConversationHistory= [];
+let toolResults=[]
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 
 	await codebolt.waitForConnection();
@@ -20,12 +21,12 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 	const includedFileDetails = await getIncludedFileDetails(projectPath)
 	let nextUserMessage = userMessage;
 	nextUserMessage.push({ type: "text", text: includedFileDetails })
-	localState.apiConversationHistory.push({ role: "user", content: nextUserMessage })
+	apiConversationHistory.push({ role: "user", content: nextUserMessage })
 	let didEndLoop = false
 	while (!didEndLoop) {
 
 		try {
-			const response = await attemptApiRequest(localState.apiConversationHistory, projectPath)
+			const response = await attemptApiRequest(apiConversationHistory, projectPath)
 
 			/**
 			 * If there is text message to be sent to user present in the AI Reply, send it to user.
@@ -34,14 +35,14 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			for (const contentBlock of response.choices) {
 				if (contentBlock.message) {
 					isMessagePresentinReply = true;
-					localState.apiConversationHistory.push(contentBlock.message)
+					apiConversationHistory.push(contentBlock.message)
 					if (contentBlock.message.content != null)
 						await codebolt.chat.sendMessage(contentBlock.message.content,{})
 					
 				}
 			}
 			if (!isMessagePresentinReply) {
-				localState.apiConversationHistory.push({
+				apiConversationHistory.push({
 					role: "assistant",
 					content: [{ type: "text", text: "Failure: I did not provide a response." }],
 				})
@@ -52,7 +53,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			 *  Here we are checking if the ToolDetails are available and if so, then execute the tools.
 			 * If the user rejects tool calling, then it will reject all the tools execution.
 			 */
-			localState.toolResults = []
+			toolResults = []
 			let taskCompletedBlock;
 			let userRejectedToolUse = false;
 			const contentBlock = response.choices[0]
@@ -63,16 +64,16 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 						if (toolName === "attempt_completion") {
 							taskCompletedBlock = tool
 						} else {
-							const [didUserReject, result] = await executeTool(toolName, toolInput);
+							const [didUserReject, result] = await codebolt.MCP.executeTool(toolName, toolInput,'codebolt');
 
-							localState.toolResults.push(getToolResult(toolUseId, result))
+							toolResults.push(getToolResult(toolUseId, result))
 							if (didUserReject) {
 								userRejectedToolUse = true
 							}
 						}
 					}
 					else {
-						localState.toolResults.push(getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection."))
+						toolResults.push(getToolResult(toolUseId, "Skipping tool execution due to previous tool user rejection."))
 					}
 				}
 			}
@@ -81,15 +82,15 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			 * Handle if Task Completion is given by AI. This is put separately so that it is called at last.
 			 */
 			if (taskCompletedBlock) {
-				let [_, result] = await executeTool(
+				let [_, result] = await codebolt.MCP.executeTool(
 					taskCompletedBlock.function.name,
-					JSON.parse(taskCompletedBlock.function.arguments || "{}")
+					JSON.parse(taskCompletedBlock.function.arguments || "{}"),'codebolt'
 				)
 				if (result === "") {
 					didEndLoop = true
 					result = "The user is satisfied with the result."
 				}
-				localState.toolResults.push(getToolResult(taskCompletedBlock.id, result))
+				toolResults.push(getToolResult(taskCompletedBlock.id, result))
 
 			}
 
@@ -98,15 +99,15 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			 * Setting the Response of Tool Results as Usermessage for next time. 
 			 * Also pushing all the tool result in api conversation history.
 			 */
-			for (let result of localState.toolResults) {
-				localState.apiConversationHistory.push(result)
+			for (let result of toolResults) {
+				apiConversationHistory.push(result)
 			}
-			nextUserMessage = localState.toolResults
+			nextUserMessage = toolResults
 
 			/**
 			 * Handle if Tool does not have a result, we assume the ai has nothing more to do, then you need to ask the AI to explicitly send Completion task. 
 			 */
-			if (localState.toolResults.length == 0) {
+			if (toolResults.length == 0) {
 				nextUserMessage = [
 					{
 						"role": "user",
@@ -118,19 +119,19 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 						]
 					}
 				]
-				localState.consecutiveMistakeCount++
-				localState.apiConversationHistory.push(nextUserMessage[0])
+				consecutiveMistakeCount++
+				apiConversationHistory.push(nextUserMessage[0])
 
 			}
 
-			if (localState.consecutiveMistakeCount >= 3) {
+			if (consecutiveMistakeCount >= 3) {
 				//@ts-ignore
 				const { ur_response, ur_text, ur_images } = await askUserAfterConsecutiveError()
 				if (ur_response === "messageResponse") {
 					const msg = messageToHistoryIfUserClarifies(ur_text, ur_images)
 					nextUserMessage.push(...msg);						//Check this
-					localState.apiConversationHistory.push(nextUserMessage)
-        			localState.consecutiveMistakeCount = 0
+					apiConversationHistory.push(nextUserMessage)
+        			consecutiveMistakeCount = 0
 				} else {
 					didEndLoop = true
 				}
