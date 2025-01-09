@@ -14,7 +14,6 @@ let consecutiveMistakeCount= 0;
 let apiConversationHistory= [];
 let toolResults=[]
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
-
 	let { projectPath } = await codebolt.project.getProjectPath();
 	let userMessage = setupInitionMessage(req.message)
 	const includedFileDetails = await getIncludedFileDetails(projectPath)
@@ -26,7 +25,6 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 
 		try {
 			const response = await attemptApiRequest(apiConversationHistory, projectPath)
-
 			/**
 			 * If there is text message to be sent to user present in the AI Reply, send it to user.
 			 */
@@ -63,7 +61,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 						if (toolName === "attempt_completion") {
 							taskCompletedBlock = tool
 						} else {
-							const [didUserReject, result] = await codebolt.MCP.executeTool(toolName, toolInput,'codebolt');
+							const [didUserReject, result] = await codebolt.MCP.executeTool(toolName, toolInput);
 
 							toolResults.push(getToolResult(toolUseId, result))
 							if (didUserReject) {
@@ -83,7 +81,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 			if (taskCompletedBlock) {
 				let [_, result] = await codebolt.MCP.executeTool(
 					taskCompletedBlock.function.name,
-					JSON.parse(taskCompletedBlock.function.arguments || "{}"),'codebolt'
+					JSON.parse(taskCompletedBlock.function.arguments || "{}")
 				)
 				if (result === "") {
 					didEndLoop = true

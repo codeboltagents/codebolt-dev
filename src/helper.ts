@@ -23,37 +23,6 @@ export const getToolResult = (tool_call_id, content) => {
 }
 
 
-
-
-export async function getEditorFileStatus(cwd?) {
-    let details = ""
-    // It could be useful for claude to know if the user went from one or no file to another between messages, so we always include this context
-    details += "\n\n# Codebolt Visible Files"
-    const visibleFiles = []//vscode.window.visibleTextEditors
-        ?.map((editor) => editor.document?.uri?.fsPath)
-        .filter(Boolean)
-        .map((absolutePath) => path.relative(cwd, absolutePath))
-        .join("\n")
-    if (visibleFiles) {
-        details += `\n${visibleFiles}`
-    } else {
-        details += "\n(No visible files)"
-    }
-    details += "\n\n# Codebolt Open Tabs"
-    const openTabs = [] //vscode.window.tabGroups.all
-        .flatMap((group) => group.tabs)
-        .map((tab) => (tab.input)?.uri?.fsPath)
-        .filter(Boolean)
-        .map((absolutePath) => path.relative(cwd, absolutePath))
-        .join("\n")
-    if (openTabs) {
-        details += `\n${openTabs}`
-    } else {
-        details += "\n(No open tabs)"
-    }
-    return details
-}
-
 export function setupInitionMessage(message) {
     return [
         {
@@ -75,19 +44,12 @@ export const getToolDetail = (tool) => {
 
 export async function getIncludedFileDetails(cwd) {
     let details = ""
-
-
-    // this.didEditFile = false // reset, this lets us know when to wait for saved files to update terminals
-
-    const isDesktop = cwd === path.join(os.homedir(), "Desktop")
     //@ts-ignore
-    let { success, result } = await codebolt.fs.listFile(cwd, !isDesktop)
-    details += `\n\n# Current Working Directory (${cwd}) Files\n${result}${isDesktop
+    let { success, result } = await codebolt.fs.listFile(cwd, true)
+    details += `\n\n# Current Working Directory (${cwd}) Files\n${result}
         ? "\n(Note: Only top-level contents shown for Desktop by default. Use list_files to explore further if necessary.)"
         : ""
         }`
-
-
     return `<environment_details>\n${details.trim()}\n</environment_details>`
 }
 
@@ -97,9 +59,7 @@ export async function getIncludedFileDetails(cwd) {
 
 export async function attemptApiRequest(apiConversationHistory, cwd, customInstructions?: string) {
     try {
-        // let projectPath = await currentProjectPath();
-        // console.log(projectPath)
-        // cwd=projectPath;
+      
         let systemPrompt = await SYSTEM_PROMPT(cwd)
         if (customInstructions && customInstructions.trim()) {
             // altering the system prompt mid-task will break the prompt cache, but in the grand scheme this will not change often so it's better to not pollute user messages with it the way we have to with <potentially relevant details>
@@ -113,7 +73,7 @@ The following additional instructions are provided by the user. They should be f
 ${this.customInstructions.trim()}
 `
         }
-        let tools = await getTools()
+        let tools = await codebolt.MCP.getAllMCPTools('codebolt')
 
         const aiMessages = [
             { role: "system", content: systemPrompt },
@@ -174,69 +134,5 @@ export function formatImagesIntoBlocks(images?: string[]) {
         : []
 }
 
-export function findLastIndex<T>(array: Array<T>, predicate: (value: T, index: number, obj: T[]) => boolean): number {
-    let l = array.length
-    while (l--) {
-        if (predicate(array[l], l, array)) {
-            return l
-        }
-    }
-    return -1
-}
 
-export function findLast<T>(array: Array<T>, predicate: (value: T, index: number, obj: T[]) => boolean): T | undefined {
-    const index = findLastIndex(array, predicate)
-    return index === -1 ? undefined : array[index]
-}
 
-export function formatContentBlockToMarkdown(
-    block,
-    messages
-): string {
-    switch (block.type) {
-        case "text":
-            return block.text
-        case "image":
-            return `[Image]`
-        case "tool_use":
-            let input: string
-            if (typeof block.input === "object" && block.input !== null) {
-                input = Object.entries(block.input)
-                    .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
-                    .join("\n")
-            } else {
-                input = String(block.input)
-            }
-            return `[Tool Use: ${block.name}]\n${input}`
-        case "tool_result":
-            const toolName = findToolName(block.tool_use_id, messages)
-            if (typeof block.content === "string") {
-                return `[${toolName}${block.is_error ? " (Error)" : ""}]\n${block.content}`
-            } else if (Array.isArray(block.content)) {
-                return `[${toolName}${block.is_error ? " (Error)" : ""}]\n${block.content
-                    .map((contentBlock) => formatContentBlockToMarkdown(contentBlock, messages))
-                    .join("\n")}`
-            } else {
-                return `[${toolName}${block.is_error ? " (Error)" : ""}]`
-            }
-        default:
-            return "[Unexpected content type]"
-    }
-}
-
-function findToolName(toolCallId: string, messages): string {
-    for (const message of messages) {
-        if (Array.isArray(message.content)) {
-            for (const block of message.content) {
-                if (block.type === "tool_use" && block.id === toolCallId) {
-                    return block.name
-                }
-            }
-        }
-    }
-    return "Unknown Tool"
-}
-
-export async function getTools() {
-    return await codebolt.MCP.getAllMCPTools('codebolt')
-}
