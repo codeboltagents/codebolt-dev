@@ -10,13 +10,16 @@ import {
 	messageToHistoryIfUserClarifies
 } from "./helper";
 
-let consecutiveMistakeCount= 0;
-let apiConversationHistory= [];
-let toolResults=[]
+let consecutiveMistakeCount = 0;
+let apiConversationHistory = [];
+let toolResults = [];
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
+
 	let { projectPath } = await codebolt.project.getProjectPath();
-	let userMessage = setupInitionMessage(req.message)
+	let userMessage = setupInitionMessage({ userMessage: "post message in arrowai workspace in any avilable channel" });
 	const includedFileDetails = await getIncludedFileDetails(projectPath)
+
+	let mentionedMCPs = req.message.mentionedMCPs || []
 	let nextUserMessage = userMessage;
 	nextUserMessage.push({ type: "text", text: includedFileDetails })
 	apiConversationHistory.push({ role: "user", content: nextUserMessage })
@@ -24,7 +27,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 	while (!didEndLoop) {
 
 		try {
-			const response = await attemptApiRequest(apiConversationHistory, projectPath)
+			const response = await attemptApiRequest(apiConversationHistory, projectPath, mentionedMCPs)
 			/**
 			 * If there is text message to be sent to user present in the AI Reply, send it to user.
 			 */
@@ -34,8 +37,8 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 					isMessagePresentinReply = true;
 					apiConversationHistory.push(contentBlock.message)
 					if (contentBlock.message.content != null)
-						await codebolt.chat.sendMessage(contentBlock.message.content,{})
-					
+						await codebolt.chat.sendMessage(contentBlock.message.content, {})
+
 				}
 			}
 			if (!isMessagePresentinReply) {
@@ -128,7 +131,7 @@ codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 					const msg = messageToHistoryIfUserClarifies(ur_text, ur_images)
 					nextUserMessage.push(...msg);						//Check this
 					apiConversationHistory.push(nextUserMessage)
-        			consecutiveMistakeCount = 0
+					consecutiveMistakeCount = 0
 				} else {
 					didEndLoop = true
 				}

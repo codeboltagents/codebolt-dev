@@ -57,9 +57,9 @@ export async function getIncludedFileDetails(cwd) {
 
 
 
-export async function attemptApiRequest(apiConversationHistory, cwd, customInstructions?: string) {
+export async function attemptApiRequest(apiConversationHistory, cwd, mentionedMCPs: string[], customInstructions?: string,) {
     try {
-      
+
         let systemPrompt = await SYSTEM_PROMPT(cwd)
         if (customInstructions && customInstructions.trim()) {
             // altering the system prompt mid-task will break the prompt cache, but in the grand scheme this will not change often so it's better to not pollute user messages with it the way we have to with <potentially relevant details>
@@ -73,7 +73,7 @@ The following additional instructions are provided by the user. They should be f
 ${this.customInstructions.trim()}
 `
         }
-        let tools = await codebolt.MCP.getAllMCPTools('codebolt')
+        let tools = await mentionedMCPs?.length ? codebolt.MCP.getMcpTools(mentionedMCPs) : codebolt.MCP.getMCPTool('codebolt')
 
         const aiMessages = [
             { role: "system", content: systemPrompt },
