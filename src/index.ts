@@ -16,7 +16,7 @@ let toolResults = [];
 codebolt.chat.onActionMessage().on("userMessage", async (req, response) => {
 
 	let { projectPath } = await codebolt.project.getProjectPath();
-	let userMessage = setupInitionMessage({ userMessage: "post message in arrowai workspace in any avilable channel" });
+	let userMessage = setupInitionMessage(req.message);
 	const includedFileDetails = await getIncludedFileDetails(projectPath)
 
 	let mentionedMCPs = req.message.mentionedMCPs || []
